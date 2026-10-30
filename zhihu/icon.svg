@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Zhihu">
+  <title>Zhihu</title>
+  <rect x="5" y="5" width="54" height="54" rx="16" fill="#0084FF"/>
+  <path d="M17 21.5a4.5 4.5 0 0 1 4.5-4.5h21a4.5 4.5 0 0 1 4.5 4.5v14a4.5 4.5 0 0 1-4.5 4.5H31l-8.5 7v-7h-1A4.5 4.5 0 0 1 17 35.5Z" fill="#FFFFFF"/>
+  <circle cx="25.5" cy="28.5" r="2.6" fill="#0084FF"/>
+  <circle cx="32" cy="28.5" r="2.6" fill="#0084FF"/>
+  <circle cx="38.5" cy="28.5" r="2.6" fill="#0084FF"/>
+</svg>

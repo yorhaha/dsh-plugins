@@ -1,0 +1,19 @@
+# dsh-deepxiv bundle patch: mounts the DeepXiv research-access plugin.
+#
+# The row id and package name must stay unique in the Loader graph. The row
+# states no config: every option defaults in `src/config.js` (DEFAULT_CONFIG),
+# which is the one place a default lives. A deployment that wants another
+# endpoint, timeout, or size bound adds that key under this row — here or in its
+# own patch layer — and only the keys it names change.
+#
+# The plugin declares no schema library, so it validates the row itself at load:
+# a relative endpoint, an unknown source, or a request timeout larger than the
+# tool timeout fails the load rather than silently falling back.
+#
+# The DeepXiv token is NOT here. It is a secret, so it lives in the credential
+# store (`~/.dsh/.credentials.yaml`, one record under the `deepxiv` scope) and is
+# managed from the Plugins page, on the DeepXiv row. Without one, the two free test papers and the
+# three free retrieval queries still work.
+- insert:
+    - id: deepxiv
+      name: 'dsh-deepxiv'

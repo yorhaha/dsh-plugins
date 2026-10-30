@@ -1,0 +1,51 @@
+{
+  "name": "dsh-zhihu",
+  "version": "0.1.0",
+  "description": "Zhihu reading for DeepSeek Harness: a cookie kept in the local credential store, twelve read-only tools for questions, answers, articles, people, comments and the hot list, and a page that manages the cookie, with serialized requests, a per-hour budget, a response cache and a long pause when Zhihu signals risk control.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./web/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "web",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "test": "node tests/verify-behavior.mjs && node ../verify-client-datetime.mjs zhihu &&\n    node ../verify-client-locales.mjs zhihu"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-credentials": "0.2.1-rc.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "zhihu",
+    "reading",
+    "cookie",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

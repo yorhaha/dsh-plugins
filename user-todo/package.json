@@ -1,0 +1,60 @@
+{
+  "name": "dsh-user-todo",
+  "version": "0.1.0",
+  "description": "Personal todos for DeepSeek Harness: five Host tools (list_user_todos, create_user_todos, update_user_todos, delete_user_todos, list_user_agenda) over one durable list shared by the agent and the Calendar & Todos sidebar panel, with a month calendar and due reminders pushed through dsh-notify.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ],
+      "external": [
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node tests/verify-zone.mjs && node tests/verify-recurrence.mjs && node tests/verify-agenda.mjs && node tests/verify-reminders.mjs && node tests/verify-store.mjs && node tests/verify-route.mjs && node tests/verify-composition.mjs && node tests/verify-client.mjs && node ../verify-client-datetime.mjs &&\n    node ../verify-client-locales.mjs user-todo"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-storage-domain": "0.2.1-rc.3",
+    "zod": "4.4.3"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "todo",
+    "tasks",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "react": "^18.2.0",
+    "react-dom": "18.2.0",
+    "jsdom": "^29.1.1"
+  }
+}

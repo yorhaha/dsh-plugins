@@ -1,0 +1,10 @@
+# dsh-v2ex bundle patch: mounts the five V2EX query tools into the profile.
+#
+# The row id and package name must stay unique in the Loader graph. The row
+# states no config: every option defaults in `index.js` (DEFAULT_CONFIG), which
+# is the one place a default lives. A deployment that wants different limits,
+# caps, or pacing adds that key under this row — here or in its own patch layer —
+# and only the keys it names change.
+- insert:
+    - id: v2ex
+      name: 'dsh-v2ex'

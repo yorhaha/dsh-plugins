@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Outlook mail and tasks">
+  <title>Outlook mail and tasks</title>
+  <g fill="none" stroke="#5B5FC7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="14" width="48" height="30" rx="4" />
+    <path d="M9 18l23 15 23-15" />
+    <path d="M20 50h24" />
+    <path d="M26 56h12" />
+  </g>
+  <g fill="#5B5FC7">
+    <circle cx="12" cy="30" r="3" />
+    <circle cx="52" cy="30" r="3" />
+  </g>
+</svg>

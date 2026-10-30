@@ -1,0 +1,24 @@
+# dsh-outlook bundle patch: mounts the Outlook mail plugin.
+#
+# The row id and package name must stay unique in the Loader graph. Only the
+# keys this deployment actually chooses are stated here; every other option
+# defaults in `index.js` (the `Config` schema), which is the one place a default
+# lives — account slot, capture time, corpus window, page and body bounds all
+# fall back to it, and a deployment that wants another value adds that key.
+#
+# `clientId`/`tenant` are volatile: the Plugins page edits them through the
+# Harness settings service, which writes them back into this row.
+#
+# `databasePath` has no code default — it is required, so the row must state it.
+- insert:
+    - id: outlook
+      name: 'dsh-outlook'
+      config:
+        # Azure app registration (public client with the device code flow
+        # enabled). Register your own app and fill in its client id; empty
+        # means "not configured yet" and the Plugins page offers the fields.
+        clientId: ''
+        # Authority tenant: `consumers` for personal accounts, `common` for both.
+        tenant: consumers
+        # Plugin-owned SQLite corpus. One file, no server, no extra dependency.
+        databasePath: !!js dshHomePath('storages', 'outlook', 'outlook.db')

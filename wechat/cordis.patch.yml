@@ -1,0 +1,22 @@
+# dsh-wechat bundle patch: mounts the WeChat batch importer, its tools, and its page.
+#
+# The row id and package name must stay unique in the Loader graph. Only the
+# keys this deployment actually chooses are stated here; every other option
+# defaults in `src/config.js` (the `Config` schema), which is the one place a
+# default lives.
+#
+# `batchesDir` and `databasePath` have no code default — they are required, so
+# the row must state them. Everything else below is a real override.
+- insert:
+    - id: wechat
+      name: 'dsh-wechat'
+      config:
+        # The exporter project (`export.py` + `.venv` + `meta/wechat-keys.json`).
+        # Leave empty for a fresh install, or set it to your own exporter path
+        # to enable `latest` batch discovery and the keys section.
+        exporterDir: ''
+        # The batch archive. A batch stays here after import: this directory is
+        # the raw record, and re-running an import on it is idempotent.
+        batchesDir: !!js dshHomePath('wechat', 'batches')
+        # Plugin-owned SQLite corpus. One file, no server, no extra dependency.
+        databasePath: !!js dshHomePath('wechat', 'wechat.db')

@@ -1,0 +1,30 @@
+{
+  "name": "dsh-full-access",
+  "version": "1.0.0",
+  "description": "Default permission bundle for DeepSeek Harness: starts every new session in the Full access preset.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "permissions",
+    "sandbox"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "dsh-deepxiv",
+  "version": "0.1.0",
+  "description": "DeepXiv research access for DeepSeek Harness: two agent tools over the full-text arXiv, bioRxiv, medRxiv, and PMC corpora at data.rag.ac.cn, with a row page that keeps the DeepXiv token in the local credential store.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./web/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "web",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "test": "node tests/verify-behavior.mjs && node ../verify-client-datetime.mjs &&\n    node ../verify-client-locales.mjs deepxiv"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-credentials": "0.2.1-rc.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepxiv",
+    "arxiv",
+    "papers",
+    "research",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "@deepseek-ai/dsh-credentials-local": "0.2.1-rc.3"
+  }
+}

@@ -1,0 +1,14 @@
+# dsh-taobao bundle patch: mounts the four cross-platform price tools into the profile.
+#
+# The row id and package name must stay unique in the Loader graph. The row
+# states no config: every option defaults in `index.js` (DEFAULT_CONFIG), which
+# is the one place a default lives. A deployment that wants a different invite
+# code, pacing, or result cap adds that key under this row — here or in its own
+# patch layer — and only the keys it names change.
+#
+# `inviteCode` is a commission-bearing attribution parameter forwarded to
+# maishou88.com. Set it to '' to drop attribution entirely; every tool result
+# also reports `affiliate` so the model discloses it to the user.
+- insert:
+    - id: taobao
+      name: 'dsh-taobao'

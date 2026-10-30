@@ -1,0 +1,59 @@
+{
+  "name": "dsh-outlook",
+  "version": "0.2.0",
+  "description": "Outlook mail for DeepSeek Harness: capture your messages into a local corpus and search them by time and text.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./web/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "web",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-plugin-manager"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node tests/verify-behavior.mjs && node ../verify-client-datetime.mjs &&\n    node ../verify-client-locales.mjs outlook"
+  },
+  "dependencies": {
+    "@azure/msal-node": "7.0.1",
+    "@deepseek-ai/dsh-credentials": "0.2.1-rc.3",
+    "@deepseek-ai/schemastery": "~3.18.5"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "outlook",
+    "microsoft-outlook",
+    "microsoft-graph",
+    "mail",
+    "connector",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

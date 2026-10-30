@@ -1,0 +1,25 @@
+node_modules/
+.DS_Store
+*.log
+
+# Local secrets and credentials
+.env
+.env.*
+!.env.example
+.credentials.yaml
+*.credentials.yaml
+*.pem
+*.key
+*.p12
+*.pfx
+cookie.txt
+*.cookie
+
+# Local data and build artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.db-*
+*.tgz
+coverage/
+data/

@@ -1,0 +1,36 @@
+# dsh-full-access bundle patch: makes Full access the permission default for
+# every new session.
+#
+# This layer overrides rows the base bundle already declares and inserts none of
+# its own. An id-targeted override replaces the target row's complete `config`
+# instead of deep-merging it, so every row below restates the fields the base
+# needs.
+#
+# The preset default and the two enforcement defaults are kept equal: a fresh
+# session is pinned through `permission.defaultPreset`, while agentless calls
+# and sessions without an explicit choice read the composition defaults.
+# Change all three together when a deployment wants another default, or edit
+# the profile's own patch layer instead — that layer applies after every bundle
+# and wins.
+- id: sandbox-policy
+  config:
+    mode: danger-full-access
+    workspaceRoot: !!js process.cwd()
+
+- id: approval
+  config:
+    policy: never
+
+- id: permission
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+      danger-full-access:
+        sandbox: danger-full-access
+        approval: never
+    defaultPreset: danger-full-access

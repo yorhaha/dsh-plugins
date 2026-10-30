@@ -1,0 +1,16 @@
+# dsh-zhihu bundle patch: mounts the cookie-authenticated Zhihu reading tools
+# and the page that manages the cookie.
+#
+# The row id and package name must stay unique in the Loader graph. The row
+# states no config: every option defaults in `src/config.js` (DEFAULT_CONFIG),
+# which is the one place a default lives. A deployment that wants another
+# credential slot, a longer pause, or a smaller hourly budget adds that key
+# under this row — here or in its own patch layer — and only the keys it names
+# change.
+#
+# The plugin declares no schema library, so it validates the row itself at
+# load: an unknown key or an out-of-range value fails the load rather than
+# silently falling back to a default.
+- insert:
+    - id: zhihu
+      name: 'dsh-zhihu'

@@ -1,0 +1,40 @@
+{
+  "name": "dsh-taobao",
+  "version": "0.1.0",
+  "description": "Cross-platform product price comparison for DeepSeek Harness: four Host tools (taobao_search, taobao_compare, taobao_detail, taobao_channels) over the maishou88.com aggregation API, covering Taobao/TMall, JD, Pinduoduo, Suning, Vipshop, Douyin, and Kuaishou, with affiliate disclosure, per-channel coverage accounting, and request pacing.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "taobao",
+    "ecommerce",
+    "price-comparison",
+    "coupon",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

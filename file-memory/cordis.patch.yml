@@ -1,0 +1,33 @@
+# dsh-file-memory bundle patch: mounts the pure-filesystem memory plugin.
+#
+# The row id and package name must stay unique in the Loader graph. Every value
+# under `config` is shown at its default, so a deployment that wants a different
+# memory location or size bound overrides the row from its own patch layer
+# instead of editing this file.
+#
+# The plugin validates this block itself at load and fails the load on an
+# unknown key, an empty path, a relative path, or an out-of-range bound, rather
+# than silently falling back to a default that would point the browser at the
+# wrong directory.
+- insert:
+    - id: file-memory
+      name: 'dsh-file-memory'
+      config:
+        # Master switch. When false the plugin registers nothing at all.
+        enabled: true
+        # The one memory directory, shared by the agent and the panel. It sits
+        # under the Harness home, so the same notes are found whichever
+        # directory launched the harness and whichever profile is running. A
+        # workspace-relative root is refused at load for exactly that reason:
+        # `dsh web` from a checkout and the desktop application resolve the same
+        # relative spelling to different directories, and the wrong one looks
+        # like an empty memory rather than a misconfiguration.
+        #
+        # Point this at a project directory to keep project memory instead; the
+        # agent then writes it with no approval prompt, while a root outside the
+        # workspace prompts once per write under `workspace-write`. `~` expands.
+        root: !!js dshHomePath('memory')
+        # How deep the panel's tree walk descends.
+        maxDepth: 5
+        # Largest single memory file the panel will read or write.
+        maxFileBytes: 1048576

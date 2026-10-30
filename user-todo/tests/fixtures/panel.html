@@ -1,0 +1,95 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><style>
+.dsh-ut-page { display: block; min-height: 100%; background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); }
+.dsh-ut-heading { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.dsh-ut-title { margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; }
+.dsh-ut-subtitle { margin: 0; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary); }
+.dsh-ut-summary { display: flex; align-items: center; gap: 10px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-tertiary); white-space: nowrap; }
+.dsh-ut-compose:focus-within { border-color: var(--dsw-alias-state-business-primary); }
+.dsh-ut-compose-title { flex: 1 1 160px; min-width: 0; height: 32px; padding: 0 8px; border: none; outline: none; background: transparent; font: inherit; font-size: 14px; line-height: 22px; color: var(--dsw-alias-label-primary); }
+.dsh-ut-compose-title::placeholder { color: var(--dsw-alias-label-dimmed); }
+.dsh-ut-date { height: 26px; padding: 0 8px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l4); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; }
+.dsh-ut-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 28px; padding: 0 10px; border: none; border-radius: var(--dsw-radius-sm); background: transparent; color: var(--dsw-alias-label-primary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.dsh-ut-button:disabled { cursor: not-allowed; opacity: 0.4; }
+.dsh-ut-button[data-variant="primary"]:disabled { opacity: 1; }
+.dsh-ut-button[data-variant="outline"] { border: 0.5px solid var(--dsw-alias-border-l3); }
+.dsh-ut-button[data-variant="outline"]:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-ut-button[data-variant="ghost"]:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-ut-filters { display: inline-flex; align-items: center; gap: 4px; }
+.dsh-ut-pill { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l4); background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.dsh-ut-pill:hover { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-ut-pill[aria-pressed="true"] { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-button-ghost-active-fill); box-shadow: inset 0 0 0 1px var(--dsw-alias-button-ghost-active-border); }
+.dsh-ut-pill-count { color: var(--dsw-alias-label-tertiary); font-variant-numeric: tabular-nums; }
+.dsh-ut-notice-region { display: flex; align-items: center; min-height: 26px; padding: 2px 20px; }
+.dsh-ut-notice { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border-radius: 999px; font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-layer-2); }
+.dsh-ut-notice[data-tone="error"] { color: var(--dsw-alias-state-error-primary); background: var(--dsw-alias-bg-layer-2); }
+.dsh-ut-notice[data-tone="warn"] { color: var(--dsw-alias-state-warn-label); background: var(--dsw-alias-state-warn-tertiary); }
+.dsh-ut-notice .dsh-ut-button { height: 22px; padding: 0 6px; color: inherit; }
+.dsh-ut-body { display: block; padding: 4px 20px 40px; }
+.dsh-ut-group { display: block; padding: 0; }
+.dsh-ut-group + .dsh-ut-group { border-top: 0.5px solid var(--dsw-alias-border-l1); }
+.dsh-ut-card .dsh-ut-group .dsh-ut-group-head { padding: 6px 12px; background: var(--dsw-alias-bg-layer-2); font-size: 11.5px; line-height: 17px; }
+.dsh-ut-group-head { display: flex; align-items: center; gap: 6px; padding: 6px 0; font-size: 12px; line-height: 18px; font-weight: 600; color: var(--dsw-alias-label-secondary); }
+.dsh-ut-group-count { font-weight: 500; color: var(--dsw-alias-label-tertiary); font-variant-numeric: tabular-nums; }
+.dsh-ut-row:hover, .dsh-ut-row:focus-within { background: var(--dsw-alias-bg-layer-1); border-color: var(--dsw-alias-border-l4); }
+.dsh-ut-check { flex: 0 0 auto; width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--dsw-alias-brand-primary); border-radius: 4px; cursor: pointer; }
+.dsh-ut-check:focus-visible { outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); outline-offset: 2px; }
+.dsh-ut-check:disabled { cursor: default; opacity: 0.5; }
+.dsh-ut-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dsh-ut-row-title { display: block; appearance: none; padding: 0; border: 0; background: none; font: inherit; font-size: 13.5px; line-height: 21px; font-weight: 500; color: var(--dsw-alias-label-primary); text-align: left; word-break: break-word; cursor: text; }
+.dsh-ut-row-title:hover { color: var(--dsw-alias-state-business-primary); }
+.dsh-ut-row[data-done="true"] .dsh-ut-row-title { font-weight: 400; color: var(--dsw-alias-label-tertiary); text-decoration: line-through; }
+.dsh-ut-row-note { font-size: 12px; line-height: 18px; color: var(--dsw-alias-label-secondary); white-space: pre-wrap; word-break: break-word; }
+.dsh-ut-row-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dsh-ut-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 1px 8px; font-size: 11px; line-height: 17px; font-weight: 500; white-space: nowrap; border: 0.5px solid var(--dsw-alias-border-l3); color: var(--dsw-alias-label-secondary); }
+.dsh-ut-chip[data-tone="warning"] { border-color: transparent; color: var(--dsw-alias-state-warn-label); background: var(--dsw-alias-state-warn-tertiary); }
+.dsh-ut-chip[data-tone="danger"] { border-color: transparent; color: var(--dsw-alias-label-primary-foreground); background: var(--dsw-alias-state-error-primary); }
+.dsh-ut-chip[data-tone="info"] { border-color: transparent; color: var(--dsw-alias-label-secondary); background: var(--dsw-alias-bg-layer-3); }
+.dsh-ut-actions { display: flex; align-items: center; gap: 2px; flex: none; opacity: 0; transition: opacity 120ms ease; }
+.dsh-ut-row:hover .dsh-ut-actions, .dsh-ut-row:focus-within .dsh-ut-actions { opacity: 1; }
+@media (hover: none) { .dsh-ut-actions { opacity: 1; } }
+.dsh-ut-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: none; border-radius: var(--dsw-radius-md); background: transparent; color: var(--dsw-alias-label-secondary); cursor: pointer; }
+.dsh-ut-icon-button:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
+.dsh-ut-icon-button[data-danger="true"]:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover-danger); color: var(--dsw-alias-state-error-primary); }
+.dsh-ut-icon-button:disabled { cursor: not-allowed; opacity: 0.4; }
+.dsh-ut-editor { display: flex; flex-direction: column; gap: 10px; width: 100%; padding: 12px; border-radius: var(--dsw-radius-lg); background: var(--dsw-alias-bg-layer-1); border: 0.5px solid var(--dsw-alias-border-l4); }
+.dsh-ut-editor-row { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.dsh-ut-field { display: flex; flex-direction: column; gap: 4px; font-size: 11px; line-height: 16px; color: var(--dsw-alias-label-tertiary); }
+.dsh-ut-field input, .dsh-ut-field textarea, .dsh-ut-field select { height: 32px; padding: 0 8px; border-radius: var(--dsw-radius-md); border: 0.5px solid var(--dsw-alias-border-l4); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-primary); font: inherit; font-size: 13px; line-height: 20px; }
+.dsh-ut-field input:focus, .dsh-ut-field textarea:focus, .dsh-ut-field select:focus { outline: none; border-color: var(--dsw-alias-state-business-primary); }
+.dsh-ut-field textarea { height: auto; min-height: 60px; padding: 6px 8px; resize: vertical; }
+.dsh-ut-empty > svg { color: var(--dsw-alias-label-dimmed); }
+.dsh-ut-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 56px 16px; text-align: center; color: var(--dsw-alias-label-tertiary); font-size: 13px; line-height: 20px; }
+.dsh-ut-empty-title { font-size: 14px; line-height: 22px; color: var(--dsw-alias-label-secondary); }
+.dsh-ut-empty-action { margin-top: 8px; }
+.dsh-ut-header { display: flex; align-items: flex-start; gap: 12px; padding: 20px 20px 14px; }
+.dsh-ut-card { display: block; border-radius: var(--dsw-radius-lg); background: var(--dsw-alias-bg-layer-1); border: 0.5px solid var(--dsw-alias-border-l4); overflow: hidden; }
+.dsh-ut-card .dsh-ut-row { border-radius: 0; border: none; }
+.dsh-ut-card .dsh-ut-row + .dsh-ut-row { margin-top: 0; }
+.dsh-ut-card .dsh-ut-row:hover, .dsh-ut-card .dsh-ut-row:focus-within { border-color: transparent; background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-ut-compose-meta { display: inline-flex; align-items: center; gap: 8px; }
+.dsh-ut-row { display: flex; padding: 8px 12px; align-items: flex-start; gap: 10px; }
+.dsh-ut-compose { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 20px; padding: 6px 6px 6px 10px; border-radius: 22px; background: var(--dsw-alias-bg-layer-1); border: 0.5px solid var(--dsw-alias-border-l4); }
+.dsh-ut-compose-title { height: 32px; }
+.dsh-ut-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 20px 6px; }
+
+.dsh-ut-placeholder { height: 26px; padding: 0 10px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l3); background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.dsh-ut-placeholder:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
+.dsh-ut-button[data-variant="primary"] { background: var(--dsw-alias-button-info-fill); color: var(--dsw-alias-label-primary-foreground); font-weight: 500; }
+.dsh-ut-button[data-variant="primary"]:hover:not(:disabled) { background: var(--dsw-alias-button-info-hover); }
+.dsh-ut-button[data-variant="primary"]:disabled { background: var(--dsw-alias-button-primary-dimmed); color: var(--dsw-alias-label-tertiary); }
+
+@media (max-width: 560px) {
+  .dsh-ut-header, .dsh-ut-toolbar, .dsh-ut-notice-region { padding-left: 14px; padding-right: 14px; }
+  .dsh-ut-compose { margin: 0 14px; }
+  .dsh-ut-body { padding-left: 14px; padding-right: 14px; }
+  .dsh-ut-compose-title { flex-basis: 100%; }
+  .dsh-ut-compose-meta { flex: 1 1 auto; min-width: 0; }
+  .dsh-ut-date { min-width: 0; max-width: 180px; }
+}
+@media (max-width: 400px) {
+  .dsh-ut-title { font-size: 14px; line-height: 20px; letter-spacing: 0; }
+  .dsh-ut-row { padding: 8px; gap: 8px; }
+  .dsh-ut-pill { padding: 0 7px; }
+}
+
+</style></head><body><div class="dsh-ut-page"><header class="dsh-ut-header"><div class="dsh-ut-heading"><h1 class="dsh-ut-title">日历与待办</h1><p class="dsh-ut-subtitle">助手也能读写同一份。</p></div><button type="button" class="dsh-ut-icon-button" title="刷新" aria-label="刷新"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"></path><path d="M20 4v5h-5"></path></svg></button></header><div class="dsh-ut-compose"><input class="dsh-ut-compose-title" placeholder="添加一项待办，回车保存" aria-label="添加一项待办，回车保存" maxlength="200" value=""><div class="dsh-ut-compose-meta"><button type="button" class="dsh-ut-placeholder" title="截止">截止</button></div><button type="button" class="dsh-ut-button" data-variant="primary" disabled=""><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>添加</button></div><div class="dsh-ut-toolbar"><div class="dsh-ut-filters" role="group" aria-label="全部"><button type="button" class="dsh-ut-pill" aria-pressed="true">全部<span class="dsh-ut-pill-count">4</span></button><button type="button" class="dsh-ut-pill" aria-pressed="false">未完成<span class="dsh-ut-pill-count">3</span></button><button type="button" class="dsh-ut-pill" aria-pressed="false">已完成<span class="dsh-ut-pill-count">1</span></button></div></div><div class="dsh-ut-notice-region" role="status" aria-live="polite"></div><div class="dsh-ut-body"><div class="dsh-ut-card"><section class="dsh-ut-group" aria-label="已逾期"><div class="dsh-ut-group-head"><span>已逾期</span><span class="dsh-ut-group-count">1</span></div><div class="dsh-ut-row" data-done="false" data-id="todo-00000000-0000-0000-0000-000000000001"><input type="checkbox" class="dsh-ut-check" aria-label="标记完成"><div class="dsh-ut-main"><button type="button" class="dsh-ut-row-title" title="编辑">完成示例发布检查</button><div class="dsh-ut-row-note">示例备注：检查升级步骤</div><div class="dsh-ut-row-meta"><span class="dsh-ut-chip" data-tone="danger" title="逾期 Oct 26, 04:20 PM">逾期 Oct 26, 04:20 PM</span><span class="dsh-ut-chip">#release</span><span class="dsh-ut-chip" data-tone="info" title="由 agent 修改">agent</span></div></div><div class="dsh-ut-actions"><button type="button" class="dsh-ut-icon-button" title="编辑" aria-label="编辑"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path><path d="M13.5 6.5l3 3"></path></svg></button><button type="button" class="dsh-ut-icon-button" data-danger="true" title="删除" aria-label="删除"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"></path><path d="M10 11v5M14 11v5"></path></svg></button></div></div></section><section class="dsh-ut-group" aria-label="今天"><div class="dsh-ut-group-head"><span>今天</span><span class="dsh-ut-group-count">1</span></div><div class="dsh-ut-row" data-done="false" data-id="todo-00000000-0000-0000-0000-000000000002"><input type="checkbox" class="dsh-ut-check" aria-label="标记完成"><div class="dsh-ut-main"><button type="button" class="dsh-ut-row-title" title="编辑">Review the example panel</button><div class="dsh-ut-row-meta"><span class="dsh-ut-chip" title="截止 Oct 28, 07:20 PM">Oct 28, 07:20 PM 截止</span><span class="dsh-ut-chip">#ui</span></div></div><div class="dsh-ut-actions"><button type="button" class="dsh-ut-icon-button" title="编辑" aria-label="编辑"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path><path d="M13.5 6.5l3 3"></path></svg></button><button type="button" class="dsh-ut-icon-button" data-danger="true" title="删除" aria-label="删除"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"></path><path d="M10 11v5M14 11v5"></path></svg></button></div></div></section><section class="dsh-ut-group" aria-label="无日期"><div class="dsh-ut-group-head"><span>无日期</span><span class="dsh-ut-group-count">1</span></div><div class="dsh-ut-row" data-done="false" data-id="todo-00000000-0000-0000-0000-000000000003"><input type="checkbox" class="dsh-ut-check" aria-label="标记完成"><div class="dsh-ut-main"><button type="button" class="dsh-ut-row-title" title="编辑">预订示例会议室</button><div class="dsh-ut-row-meta"></div></div><div class="dsh-ut-actions"><button type="button" class="dsh-ut-icon-button" title="编辑" aria-label="编辑"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path><path d="M13.5 6.5l3 3"></path></svg></button><button type="button" class="dsh-ut-icon-button" data-danger="true" title="删除" aria-label="删除"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"></path><path d="M10 11v5M14 11v5"></path></svg></button></div></div></section><section class="dsh-ut-group" aria-label="已完成"><div class="dsh-ut-group-head"><span>已完成</span><span class="dsh-ut-group-count">1</span></div><div class="dsh-ut-row" data-done="true" data-id="todo-00000000-0000-0000-0000-000000000004"><input type="checkbox" class="dsh-ut-check" aria-label="标记未完成" checked=""><div class="dsh-ut-main"><button type="button" class="dsh-ut-row-title" title="编辑">整理示例反馈</button><div class="dsh-ut-row-meta"></div></div><div class="dsh-ut-actions"><button type="button" class="dsh-ut-icon-button" title="编辑" aria-label="编辑"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path><path d="M13.5 6.5l3 3"></path></svg></button><button type="button" class="dsh-ut-icon-button" data-danger="true" title="删除" aria-label="删除"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"></path><path d="M10 11v5M14 11v5"></path></svg></button></div></div></section></div></div></div></body></html>

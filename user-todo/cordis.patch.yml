@@ -1,0 +1,54 @@
+# dsh-user-todo bundle patch: mounts the user's own todo list, its calendar, its
+# reminders, and its five tools.
+#
+# The row id and package name must stay unique in the Loader graph. Values under
+# `config` are optional; every key below is this plugin's default, so a
+# deployment that wants different bounds or tool names overrides the row from
+# its own patch layer instead of editing this file.
+#
+# The list is durable host state backed by the mounted storage backend
+# (`$DSH_HOME/storages/user_todo.json` with the json backend). Two surfaces
+# share it: the Calendar & Todos panel in the Web UI, and the tools below. The tools are
+# listed here by their defaults; `toolNames` renames them without changing what
+# they do.
+#
+# Reminders are pushed through the `notify` service when the notification bundle
+# is installed, and recorded without a push when it is not. Settings the person
+# changes from the panel (the reminder switch, quiet hours, the digest time) live
+# in the stored document, not here, so changing one needs no reload.
+- insert:
+    - id: user-todo
+      name: 'dsh-user-todo'
+      config:
+        # Names of the five tools this row registers. A row that predates the
+        # calendar may omit `agenda`, and one that predates deletion may omit
+        # `remove`; each then keeps its default name.
+        toolNames:
+          list: list_user_todos
+          create: create_user_todos
+          update: update_user_todos
+          agenda: list_user_agenda
+          remove: delete_user_todos
+        # Most items one create_user_todos or update_user_todos call accepts.
+        maxCreateBatch: 20
+        maxUpdateBatch: 50
+        maxDeleteBatch: 50
+        # Bounds on one item's fields.
+        maxTitleChars: 200
+        maxNoteChars: 2000
+        # Most items the list holds; `create_user_todos` reports `list_full`
+        # beyond it instead of refusing the whole batch.
+        maxItems: 5000
+        # Refuse writes an agent makes from a delegated child session.
+        allowSubagentWrites: true
+        # IANA zone a date or a wall-clock time is read in when an item names
+        # none; null means this machine's zone.
+        timeZone: null
+        # Longest and largest agenda read, and the reminder loop's bounds.
+        agendaMaxSpanDays: 366
+        agendaMaxOccurrences: 400
+        # How long after its moment a reminder may still be delivered, most
+        # pushes in one hour, and the longest wait between two clock reads.
+        remindCatchUpHours: 24
+        maxPushesPerHour: 6
+        schedulerMaxSleepMs: 60000

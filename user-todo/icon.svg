@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="My todos">
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="#1f3d34"/>
+  <g fill="none" stroke="#9ee6c8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="15" y="14" width="34" height="36" rx="5"/>
+    <path d="M22 26.5l4 4 8-9"/>
+  </g>
+  <g stroke="#9ee6c8" stroke-width="3" stroke-linecap="round" opacity="0.75">
+    <line x1="38" y1="27" x2="46" y2="27"/>
+    <line x1="22" y1="38" x2="46" y2="38"/>
+    <line x1="22" y1="46" x2="38" y2="46"/>
+  </g>
+</svg>

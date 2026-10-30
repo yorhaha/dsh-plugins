@@ -1,0 +1,63 @@
+{
+  "name": "dsh-stock",
+  "version": "0.1.0",
+  "description": "Read-only market queries for DeepSeek Harness: thirteen Host tools (stock_search, stock_quote, stock_kline, stock_minute, stock_bars, stock_minute_history, stock_moneyflow, stock_fundamentals, stock_market, stock_rank, stock_news, stock_macro, stock_watchlist) over public Tencent and East Money endpoints, plus a persistent watchlist with holding marks and an index row managed from a sidebar panel, with request serialization, per-host backoff, and bounded responses.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-tool",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ],
+      "external": [
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node tests/verify-watchlist.mjs && node tests/verify-endpoints.mjs && node tests/verify-cards.mjs && node ../verify-client-datetime.mjs &&\n    node ../verify-client-locales.mjs stock"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-storage-domain": "0.2.1-rc.3",
+    "zod": "4.4.3"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "stock",
+    "quotes",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2",
+    "react": "^18.2.0",
+    "react-dom": "18.2.0",
+    "@deepseek-ai/dsh-client-ui-primitives": "0.2.1-rc.3",
+    "jsdom": "^29.1.1"
+  }
+}

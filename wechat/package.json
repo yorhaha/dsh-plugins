@@ -1,0 +1,51 @@
+{
+  "name": "dsh-wechat",
+  "version": "0.1.0",
+  "description": "WeChat export batches for DeepSeek Harness: imports the exporter's per-chat JSONL batches into a local SQLite corpus, exposes the messages to the agent as search over conversations and time, and ships the row page that reports the pipeline state and imports a batch.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./web/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "web",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "test": "node tests/verify-behavior.mjs && node ../verify-client-datetime.mjs &&\n    node ../verify-client-locales.mjs wechat"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "~3.18.5"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "wechat",
+    "weixin",
+    "connector",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

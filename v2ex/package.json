@@ -1,0 +1,38 @@
+{
+  "name": "dsh-v2ex",
+  "version": "0.1.0",
+  "description": "Read-only V2EX queries for DeepSeek Harness: five Host tools (v2ex_hot, v2ex_latest, v2ex_node, v2ex_topic, v2ex_replies) over the public V2EX API, with request serialization, rate-limit backoff, and trimmed responses.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "v2ex",
+    "forum",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

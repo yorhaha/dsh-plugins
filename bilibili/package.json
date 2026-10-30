@@ -1,0 +1,52 @@
+{
+  "name": "dsh-bilibili",
+  "version": "0.1.0",
+  "description": "Bilibili account data for DeepSeek Harness: captures your own watch history, watch later, favorites, following, and dynamics into a local searchable corpus, with QR sign-in and a recurring sync task.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./web/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "web",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "test": "node tests/verify-behavior.mjs && node ../verify-client-datetime.mjs &&\n    node ../verify-client-locales.mjs bilibili"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-credentials": "0.2.1-rc.3",
+    "@deepseek-ai/dsh-storage-domain": "0.2.1-rc.3",
+    "zod": "4.4.3"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "bilibili",
+    "connector",
+    "tools"
+  ],
+  "devDependencies": {
+    "@deepseek-ai/dsh-tools": "0.2.1-rc.2"
+  }
+}

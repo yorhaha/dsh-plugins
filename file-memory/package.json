@@ -1,0 +1,51 @@
+{
+  "name": "dsh-file-memory",
+  "version": "0.1.0",
+  "description": "Pure-filesystem memory for DeepSeek Harness: a constant prompt section that tells the model where memory lives and how to search it, plus a browser panel for reading and editing the same Markdown files. No vectors, no index, no database.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\" && node ../verify-client-locales.mjs file-memory"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "memory",
+    "markdown",
+    "filesystem"
+  ]
+}

@@ -1,0 +1,16 @@
+# Verification overlay for the file-memory plugin.
+#
+# A patch layer is an ordered list. An entry with an `id` and no `insert`
+# targets the existing row with that id, and `config` is replaced WHOLESALE
+# rather than deep-merged — so every field the row needs is restated here.
+#
+# The root points at a throwaway directory so a verification run cannot touch
+# real memory, and applying this proves the row's config is actually
+# configurable rather than hard-coded.
+- id: file-memory
+  name: dsh-file-memory
+  config:
+    enabled: true
+    root: '/tmp/dsh-file-memory-verify/memory'
+    maxDepth: 5
+    maxFileBytes: 1048576
