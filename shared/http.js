@@ -1,17 +1,22 @@
 /**
- * The HTTP client core shared by the taobao and v2ex bundles.
+ * The HTTP client core shared by the taobao, v2ex, zhihu, and xiaohongshu
+ * bundles.
  *
- * Both talk to one public upstream with one process-local client: requests are
- * serialized, paced by a minimum interval, retried once on a transport failure,
- * and backed off process-wide after a 429 or a refusal. The two had a copy of
- * that machinery each, identical down to the wording except for the service
- * name, and the copies had already drifted on which clock they measured the
- * interval with.
+ * taobao and v2ex talk to one public upstream with one process-local client:
+ * requests are serialized, paced by a minimum interval, retried once on a
+ * transport failure, and backed off process-wide after a 429 or a refusal. The
+ * two had a copy of that machinery each, identical down to the wording except
+ * for the service name, and the copies had already drifted on which clock they
+ * measured the interval with.
+ *
+ * zhihu and xiaohongshu keep their own endpoints, signing, and budgets, but
+ * both reuse the bounded response reader, retry timing, and failure-payload
+ * helpers below; zhihu also uses the pacer and text helpers.
  *
  * What stays in each bundle is what actually differs: the endpoint, the request
  * shape, the status ladder (which status means "not found" here), and how a
  * successful body is read. Everything below is the part that must behave the
- * same in both.
+ * same wherever it is used.
  *
  * The bundles reach this file by relative path; see `shared/schedule.js` for
  * why that is acceptable here.

@@ -2,7 +2,7 @@
 
 DeepSeek Harness 的本地插件集合。每个子目录是一个可独立安装的 Cordis 插件（bundle）：Host 侧注册工具、提示段或本地路由，部分还带回浏览器半边（插件页、侧栏面板、行情卡）。
 
-12 个 bundle 合计 **57 个 Host 工具**、**9 个浏览器半边**。数据方向只有两种：把本机数据变成助手能检索的语料，或把公开上游的查询变成工具调用；除 `notify` 外不向外部写入。
+13 个 bundle 合计 **67 个 Host 工具**、**10 个浏览器半边**。数据方向只有两种：把本机数据变成助手能检索的语料，或把公开上游的查询变成工具调用；除 `notify` 外不向外部写入。
 
 ## 插件一览
 
@@ -20,6 +20,7 @@ DeepSeek Harness 的本地插件集合。每个子目录是一个可独立安装
 | [`v2ex`](./v2ex/) | `dsh-v2ex` | V2EX 查询 | 5 | — | 只读查询热门、最新、节点主题、主题详情与回复 |
 | [`zhihu`](./zhihu/) | `dsh-zhihu` | 知乎 | 12 | 插件页 | 用本人 cookie 只读知乎：热榜、问题、回答、文章、用户、评论；请求串行、限速、预算与风控暂停 |
 | [`wechat`](./wechat/) | `dsh-wechat` | 微信 | 7 | 插件页 | 导入本机微信导出批次，建 SQLite 语料库后跨会话、跨时间检索 |
+| [`xiaohongshu`](./xiaohongshu/) | `dsh-xhs-reader` | 小红书 | 10 | 插件页 | 用本人 cookie 只读小红书：搜索、笔记正文与图片下载、评论、用户主页与本地语料；低频预算与风控暂停 |
 
 「插件页」指左侧栏「插件」里选中该 bundle 后的详情页；「侧栏」指左侧栏直接打开的面板，三个入口分别叫「记忆」「自选股」「日历与待办」。每个工具的参数、返回与失败码见该目录下的 `README.md`。
 
@@ -30,7 +31,7 @@ DeepSeek Harness 的本地插件集合。每个子目录是一个可独立安装
 ### 前置条件
 
 - DeepSeek Harness `0.2.1-rc.3` 发布线（插件按 `@deepseek-ai/cordis ^4.0.1` 编写）。更新的运行线也能跑：`@deepseek-ai/dsh-*` 服务按名字注入，插件自己那份依赖只提供工具函数；`0.2.2-alpha.2` 实测可用。
-- Node.js 22.5+。`outlook` 与 `wechat` 用 `node:sqlite`，测试用 `node --test`；Harness 自带的运行时已满足。
+- Node.js 22.5+。`outlook`、`wechat` 与 `xiaohongshu` 用 `node:sqlite`；`outlook` 与 `wechat` 的测试用 `node --test`；Harness 自带的运行时已满足。
 - pnpm 10+，用于安装插件目录里的依赖。
 
 ### 装一个插件
@@ -40,7 +41,7 @@ DeepSeek Harness 的本地插件集合。每个子目录是一个可独立安装
 1. 在 Harness 里让助手调用 `plugin_manager`，`action: install_bundle`，`target` 传插件目录的绝对路径。
 2. 命令行：`dsh plugin --profile <profile> add /绝对路径/dsh-plugins/<插件>`。`<profile>` 是 profile 名（如 `web`、`desktop`）；`dsh` 不在 PATH 上时用第一种。
 
-一次装全本仓库的 12 个 bundle（装到哪个 profile 就只在该 profile 生效）：
+一次装全本仓库的 13 个 bundle（装到哪个 profile 就只在该 profile 生效）：
 
 ```sh
 dsh plugin --profile web add \
@@ -48,7 +49,7 @@ dsh plugin --profile web add \
   /路径/dsh-plugins/full-access /路径/dsh-plugins/notify /路径/dsh-plugins/outlook \
   /路径/dsh-plugins/stock /路径/dsh-plugins/taobao \
   /路径/dsh-plugins/user-todo /路径/dsh-plugins/v2ex /路径/dsh-plugins/zhihu \
-  /路径/dsh-plugins/wechat
+  /路径/dsh-plugins/wechat /路径/dsh-plugins/xiaohongshu
 ```
 
 一条 `pnpm add` 里写完，bundle 列表按命令里的顺序追加；路径也可以写成相对于执行目录的 `../dsh-plugins/<插件>`，`dsh plugin` 会按执行目录展开。`full-access` 会把新会话的默认权限改成完全访问并关闭审批（见[安全与边界](#安全与边界)），不需要它就从这条命令里去掉。
@@ -59,11 +60,11 @@ dsh plugin --profile web add \
 
 ### 装依赖
 
-有运行时依赖的 8 个插件各自是独立工程（自带 `pnpm-workspace.yaml` 与 lockfile），先在目录里装一次：
+有运行时依赖的 9 个插件各自是独立工程（自带 `pnpm-workspace.yaml` 与 lockfile），先在目录里装一次：
 
 ```sh
 cd /路径/dsh-plugins
-for plugin in bilibili deepxiv notify outlook stock user-todo wechat zhihu; do
+for plugin in bilibili deepxiv notify outlook stock user-todo wechat xiaohongshu zhihu; do
   (cd "$plugin" && pnpm install)
 done
 ```
@@ -72,7 +73,7 @@ done
 
 | 包 | 版本 | 用到的插件 |
 | --- | --- | --- |
-| `@deepseek-ai/dsh-credentials` | `0.2.1-rc.3` | bilibili、deepxiv、notify、outlook、zhihu |
+| `@deepseek-ai/dsh-credentials` | `0.2.1-rc.3` | bilibili、deepxiv、notify、outlook、zhihu、xiaohongshu |
 | `@deepseek-ai/dsh-storage-domain` | `0.2.1-rc.3` | bilibili、stock、user-todo |
 | `@deepseek-ai/schemastery` | `~3.18.5` | outlook、wechat |
 | `@azure/msal-node` | `7.0.1` | outlook |
@@ -100,7 +101,7 @@ done
 
 不是每个目录都有全部文件：`full-access` 只有 patch、locale 与 icon；`taobao`、`v2ex` 没有 `src/` 和浏览器半边。
 
-仓库根目录还有一个 `shared/`，放的是多个 bundle 共用的 Host 侧代码：`schedule.js`（bilibili、outlook、wechat 的“定时任务”适配器只差几个字符串）、`http.js`（taobao、v2ex 的请求串行、最小间隔、退避、响应体上限、失败载荷；端点、状态阶梯与成功解析仍各自留在插件里）与 `route.js`（所有带页面的 bundle 共用的 JSON 路由样板：`sendJson` 的固定响应头、`errorCode` 的封闭错误码、`readJsonBody` 的上限读取，以及各 bundle 用来生成自有表单错误的 `defineCodeError`；`file-memory` 只用 `sendJson`，因为它的读取还要认 `content-length`。`readJsonBody` 的上限按 UTF-16 码元计而非字节。路由路径、动作表和“哪些错误码算调用方的错”仍各自留在插件里）。bundle 用相对路径 `../../shared/...` 引它，所以**单独复制一个插件目录出去会丢掉这个依赖**；这些包本来就用 `link:` 从本仓库安装，路径成立。真要单独分发时，把 `shared/` 里对应的文件复制回插件里即可。
+仓库根目录还有一个 `shared/`，放的是多个 bundle 共用的 Host 侧代码：`schedule.js`（bilibili、outlook、wechat 的“定时任务”适配器只差几个字符串）、`http.js`（taobao、v2ex 的请求串行、最小间隔、退避、响应体上限与失败载荷；zhihu 复用其中的请求节奏、响应体读取、文本截断与失败载荷，xiaohongshu 复用响应体读取、重试等待与失败载荷；端点、状态阶梯与成功解析仍各自留在插件里）与 `route.js`（所有带页面的 bundle 共用的 JSON 路由样板：`sendJson` 的固定响应头、`errorCode` 的封闭错误码、`readJsonBody` 的上限读取，以及各 bundle 用来生成自有表单错误的 `defineCodeError`；`file-memory` 只用 `sendJson`，因为它的读取还要认 `content-length`。`readJsonBody` 的上限按 UTF-16 码元计而非字节。路由路径、动作表和“哪些错误码算调用方的错”仍各自留在插件里）。bundle 用相对路径 `../../shared/...` 引它，所以**单独复制一个插件目录出去会丢掉这个依赖**；这些包本来就用 `link:` 从本仓库安装，路径成立。真要单独分发时，把 `shared/` 里对应的文件复制回插件里即可。
 
 ## 配置
 
@@ -115,7 +116,7 @@ done
 
 按 `id` 的覆盖会整体替换该行的 `config`，不是深合并：没写的字段回到插件自己的默认值，必填项缺失则由插件在加载阶段报错。所以覆盖时只需要写要改的键，其余交给默认值。多数插件在加载时校验配置，未知字段、相对路径、越界的值会让加载失败，而不是静默退回默认值；`user-todo` 与 `file-memory` 是例外——它们自带的 patch 里保留了整块配置（前者要求行里必须有 `config`，后者的 `root` 用 `!!js` 指明记忆目录）。
 
-**密钥不写在配置里。** `deepxiv` 的 token、`notify` 的目标 token、`bilibili` 与 `outlook` 的登录态存在 Harness 的凭据库（`~/.dsh/.credentials.yaml`，0600）。它们的录入都在各自的插件页完成。
+**密钥不写在配置里。** `deepxiv` 的 token、`notify` 的目标 token、`bilibili`、`outlook`、`zhihu` 与 `xiaohongshu` 的登录态存在 Harness 的凭据库（`~/.dsh/.credentials.yaml`，0600）。它们的录入都在各自的插件页完成。
 
 ## 数据落在哪
 
@@ -128,11 +129,12 @@ done
 | `stock` | `$DSH_HOME/storages/stock.json` | JSON |
 | `user-todo` | `$DSH_HOME/storages/user_todo.json` | JSON |
 | `wechat` | `$DSH_HOME/wechat/wechat.db`、`$DSH_HOME/wechat/batches/` | SQLite + 原始批次 |
+| `xiaohongshu` | `$DSH_HOME/storages/xiaohongshu/` | SQLite + 下载图片 |
 | `file-memory` | `$DSH_HOME/memory/` | Markdown |
 | `zhihu` | `$DSH_HOME/.credentials.yaml` 的 `zhihu/default` | YAML 明文 cookie |
 | 其余 | 不落盘 | 进程内状态，重启即清 |
 
-`deepxiv`、`notify`、`taobao`、`v2ex` 不缓存任何上游内容；`bilibili`、`outlook`、`wechat` 的语料与批次由你自己清理。
+`deepxiv`、`notify`、`taobao`、`v2ex` 不缓存任何上游内容；`bilibili`、`outlook`、`wechat` 的语料与批次、`xiaohongshu` 的语料与图片由你自己清理。
 
 ## 测试
 
@@ -206,7 +208,7 @@ curl -s -b cookie.txt http://127.0.0.1:38922/api/plugin-stock/watchlist
 curl -s -b cookie.txt -N --max-time 3 http://127.0.0.1:38922/plugins/events
 ```
 
-`/plugins/events` 的 `entries` 里应当有 9 个带界面的包名（`dsh-bilibili`、`dsh-deepxiv`、`dsh-file-memory`、`dsh-notify`、`dsh-outlook`、`dsh-stock`、`dsh-user-todo`、`dsh-wechat`、`dsh-zhihu`）；`taobao`、`v2ex`、`full-access` 没有浏览器半边，不在其中。
+`/plugins/events` 的 `entries` 里应当有 10 个带界面的包名（`dsh-bilibili`、`dsh-deepxiv`、`dsh-file-memory`、`dsh-notify`、`dsh-outlook`、`dsh-stock`、`dsh-user-todo`、`dsh-wechat`、`dsh-zhihu`、`dsh-xhs-reader`）；`taobao`、`v2ex`、`full-access` 没有浏览器半边，不在其中。
 
 要确认 Host 侧真的换成了新代码，给某个插件路由的返回值临时加一个字段：保存后几秒内接口就带上它，删掉后几秒又消失。这条链路上没有缓存，撤掉探测字段就是最终状态。
 
@@ -227,7 +229,7 @@ stderr 出现 `disabling profile plugin row "<id>": … incompatible with dsh <v
 ## 安全与边界
 
 - **仓库里没有真实凭据。** 测试中出现的 `sk-live-value-001`、`ghp_example_value` 等都是假值；真实的 key 请放进凭据库，不要提交。
-- **凭据存储。** `deepxiv`、`notify`、`bilibili`、`outlook`、`zhihu` 的凭据在 `~/.dsh/.credentials.yaml`（0600，明文）；其余插件的数据也不加密。
+- **凭据存储。** `deepxiv`、`notify`、`bilibili`、`outlook`、`zhihu`、`xiaohongshu` 的凭据在 `~/.dsh/.credentials.yaml`（0600，明文）；其余插件的数据也不加密。
 - **插件页是本机 HTTP 接口。** 它们挂在 `/api/...` 下，Harness 的 Host/Origin 围栏与浏览器鉴权在进入处理函数前已经跑过，但挡不住同机其他进程。`deepxiv`、`notify` 的页面按设计明文显示自己的 token，方便复制。
 - **向外写入只发生在少数地方。** `notify` 发消息；`full-access` 取消文件围栏并关闭审批，只应在自己信任的机器与工作目录上启用。其余插件只读上游、只写本机。
 - **推广披露。** `taobao` 默认不附带 `inviteCode`，结果里的 `affiliate` 字段为 `null`；只有你显式配置自己的推广码后，购买链接才带推广参数并给出披露。

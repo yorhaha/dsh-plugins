@@ -48,6 +48,7 @@ const TARGETS = [
   { dir: 'stock', file: 'client.js', formatters: ['formatTime', 'formatOpening'] },
   { dir: 'user-todo', file: 'client.js', formatters: ['timeText', 'dateTimeShort'] },
   { dir: 'wechat', file: 'web/client.js', formatters: ['stamp'] },
+  { dir: 'xiaohongshu', file: 'web/client.js', formatters: ['when'] },
 ]
 
 /**

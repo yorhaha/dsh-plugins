@@ -1,0 +1,11 @@
+# dsh-xhs-reader bundle patch: mounts the cookie-authenticated Xiaohongshu
+# reading tools and the page that manages the cookie, pacing, and corpus.
+#
+# The row id and package name must stay unique in the Loader graph. The row
+# states no config: every option defaults in `src/config.js` (DEFAULT_CONFIG),
+# which is the one place a default lives. A deployment that wants another
+# credential slot, a slower interval, or a smaller budget adds that key under
+# this row — here or in its own patch layer — and only the keys it names change.
+- insert:
+    - id: xiaohongshu
+      name: 'dsh-xhs-reader'
