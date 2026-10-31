@@ -36,7 +36,7 @@ Cookie 至少要有 `a1`（设备标识，也是签名密钥材料）与 `web_se
 
 签名会随小红书前端发版失效，届时需要更新 `src/signing.js`，不要靠频繁重试碰运气。
 
-没有直接包装现成 CLI（`redbook`、`xiaohongshu-cli`），因为无法控制其内部请求节奏、Cookie 要复制两份、错误码太粗。签名、限速、预算、语料与工具接口都在本进程内，只把上游当数据源。
+没有直接包装现成 CLI（`redbook`、`xiaohongshu-cli`），因为无法控制其内部请求节奏、Cookie 要复制两份、错误码太粗。签名、限速、预算、语料与工具接口都在本进程内，只把上游当数据源。四条技术路线与代表项目的调研见 [`docs/xiaohongshu-cli-survey.md`](../docs/xiaohongshu-cli-survey.md)。
 
 ## 风控
 

@@ -22,7 +22,7 @@
 | [`xiaohongshu`](./xiaohongshu/) | `dsh-xhs-reader` | 小红书 | 10 | 插件页 | 本人 cookie 只读访问小红书：搜索、正文与图片、评论、用户主页与本地语料 |
 | [`zhihu`](./zhihu/) | `dsh-zhihu` | 知乎 | 12 | 插件页 | 本人 cookie 只读访问知乎：热榜、问题、回答、文章、用户与评论 |
 
-「插件页」指左侧栏「插件」中选中该 bundle 后显示的详情页；「侧栏」指从左侧栏直接打开的面板（记忆、自选股、日历与待办）。工具参数、返回值与失败码见各目录的 `README.md`。
+「插件页」指左侧栏「插件」中选中该 bundle 后显示的详情页；「侧栏」指从左侧栏直接打开的面板（记忆、自选股、日历与待办）。工具参数、返回值与失败码见各目录的 `README.md`；`file-memory`、`full-access` 不注册工具，只有配置与边界。
 
 插件之间只有一处数据耦合：`user-todo` 的到期提醒通过 `notify` 提供的服务投递，两边都不要求对方存在——没有 `notify` 的时候提醒只记录在本地。
 
@@ -40,7 +40,21 @@
 
 安装会把插件目录作为 `link:` 依赖写入 profile 的 `package.json` 并加入 bundle 列表；插件自己的 `cordis.patch.yml` 负责把它的行带入 Loader。卸载用 `plugin_manager` 的 `remove_bundle`（`target` 传包名）或 `dsh plugin --profile <profile> remove <包名>`；插件留下的本机数据不会自动删除。
 
-有运行时依赖的 9 个插件（`bilibili`、`deepxiv`、`notify`、`outlook`、`stock`、`user-todo`、`wechat`、`xiaohongshu`、`zhihu`）各自是独立工程，需要先在各自目录 `pnpm install` 一次。依赖都来自 npm：`@deepseek-ai/dsh-credentials`、`@deepseek-ai/dsh-storage-domain`（`0.2.1-rc.3`）、`@deepseek-ai/schemastery`（`~3.18.5`）、`@azure/msal-node`（`7.0.1`）、`zod`（`4.4.3`）。`file-memory`、`full-access`、`taobao`、`v2ex` 没有运行时依赖；`taobao`、`v2ex` 的测试需要 `@deepseek-ai/dsh-tools`，也要 `pnpm install` 一次。
+有运行时依赖的 9 个插件（`bilibili`、`deepxiv`、`notify`、`outlook`、`stock`、`user-todo`、`wechat`、`xiaohongshu`、`zhihu`）各自是独立工程，需要先在各自目录 `pnpm install` 一次。依赖都来自 npm：
+
+| 包 | 版本 | 用在哪 |
+| --- | --- | --- |
+| `@deepseek-ai/dsh-credentials` | `0.2.1-rc.3` | `bilibili`、`deepxiv`、`notify`、`outlook`、`xiaohongshu`、`zhihu` |
+| `@deepseek-ai/dsh-storage-domain` | `0.2.1-rc.3` | `bilibili`、`stock`、`user-todo` |
+| `@deepseek-ai/schemastery` | `~3.18.5` | `outlook`、`wechat` |
+| `@azure/msal-node` | `7.0.1` | `outlook` |
+| `zod` | `4.4.3` | `bilibili`、`stock`、`user-todo` |
+| `@deepseek-ai/dsh-tools` | `0.2.1-rc.2` | 仅测试：除 `file-memory`、`full-access` 外 11 个插件的 devDependency |
+| `@deepseek-ai/dsh-credentials-local` | `0.2.1-rc.3` | 仅测试：`deepxiv`、`notify` |
+| `@deepseek-ai/dsh-client-ui-primitives` | `0.2.1-rc.3` | 仅测试：`stock` 的结果卡 |
+| `react`、`react-dom`、`jsdom` | `^18.2.0` / `18.2.0` / `^29.1.1` | 仅测试：`stock`、`user-todo` 的结果卡与面板检查 |
+
+`file-memory`、`full-access`、`taobao`、`v2ex` 没有运行时依赖，但 `taobao`、`v2ex` 的测试要 `@deepseek-ai/dsh-tools`，仍要 `pnpm install` 一次。
 
 ## 目录约定
 
@@ -53,8 +67,11 @@
 | `cordis.patch.yml` | 装载行；只写入本部署真正的覆盖 |
 | `tests/` | 离线校验与本地挂载检查 |
 | `icon.svg`、`README.md` | 图标；该插件的工具、配置与边界 |
+| `docs/` | 决策记录：当时为什么这样选，行为以插件 README 为准 |
+| `shared/` | 跨插件共用代码，见下 |
+| `verify-client-locales.mjs`、`verify-client-datetime.mjs` | 根目录的浏览器半边校验，被各插件的 `npm test` 调用 |
 
-`full-access` 只有 patch、locale 与 icon；`taobao`、`v2ex` 没有 `src/` 和浏览器半边。根目录的 `shared/` 存放共用代码：`schedule.js`（三个定时抓取任务的适配器）、`http.js`（请求串行、最小间隔、退避、响应体上限与失败载荷）、`route.js`（`/api` 路由样板与错误码）。bundle 以 `../../shared/...` 引用它，单独复制一个插件目录出去会丢失这个依赖；需要单独分发时把对应文件复制回插件目录。
+`full-access` 只有 patch、locale 与 icon；`taobao`、`v2ex` 没有 `src/` 和浏览器半边。根目录的 `shared/` 存放共用代码：`schedule.js`（三个定时抓取任务的适配器）、`http.js`（请求串行、最小间隔、退避、响应体上限与失败载荷）、`route.js`（`/api` 路由样板与错误码）。bundle 以 `../../shared/...` 引用它，单独复制一个插件目录出去会丢失这个依赖；`npm test` 同样依赖根目录的 `verify-client-locales.mjs` 与 `verify-client-datetime.mjs`。需要单独分发时把对应文件一并复制过去。
 
 ## 配置
 
@@ -69,13 +86,13 @@
 
 按 `id` 的覆盖会整体替换该行的 `config`，不做深合并：没写入的字段回到默认值。多数插件在加载时校验配置，未知字段、相对路径、越界值会导致加载失败。
 
-密钥不写入配置。`deepxiv` 的 token、`notify` 的目标 token，以及 `bilibili`、`outlook`、`zhihu`、`xiaohongshu` 的登录态保存在凭据库（`~/.dsh/.credentials.yaml`，0600，明文）中，在各自的插件页录入。
+密钥不写入配置：token 与登录态都在凭据库（`~/.dsh/.credentials.yaml`，0600，明文），在各自的插件页录入，清单见「数据落在哪」。
 
 ## 数据落在哪
 
 `$DSH_HOME` 默认是 `~/.dsh`。下列文件都没有加密存储。
 
-| 插件 | 位置 | 形态 |
+| 归属 | 位置 | 形态 |
 | --- | --- | --- |
 | `bilibili` | `$DSH_HOME/storages/bilibili/` | 每条记录一个 JSON |
 | `outlook` | `$DSH_HOME/storages/outlook/outlook.db` | SQLite + FTS5 |
@@ -84,19 +101,21 @@
 | `wechat` | `$DSH_HOME/wechat/wechat.db`、`$DSH_HOME/wechat/batches/` | SQLite + 原始批次 |
 | `xiaohongshu` | `$DSH_HOME/storages/xiaohongshu/` | SQLite + 下载图片 |
 | `file-memory` | `$DSH_HOME/memory/` | Markdown |
-| `zhihu` | `$DSH_HOME/.credentials.yaml` 的 `zhihu/default` | YAML 明文 cookie |
+| 登录态与 token | `$DSH_HOME/.credentials.yaml` | YAML 明文，0600 |
 | 其余 | 不落盘 | 进程内状态，重启即清 |
+
+凭据库里放 `bilibili`、`outlook`、`xiaohongshu`、`zhihu` 的登录态与 `deepxiv`、`notify` 的 token，都在各自的插件页录入，没有加密。`wechat` 与 `outlook`、`xiaohongshu` 用同一个 `node:sqlite` 驱动，但它落在自己的 `$DSH_HOME/wechat/` 下（导出批次也在那里），其余走 `storages/`。
 
 `deepxiv`、`notify`、`taobao`、`v2ex` 不缓存任何上游内容；`bilibili`、`outlook`、`wechat` 的语料与批次，以及 `xiaohongshu` 的语料与图片，需要由你自行清理。
 
 ## 测试
 
-带 `scripts.test` 的插件在各自目录运行 `npm test`。全部离线：不读本机账号，不访问上游。
+带 `scripts.test` 的插件在各自目录运行 `npm test`。全部离线：不读本机账号，不访问上游。跑之前先 `pnpm install`——除 `file-memory`、`full-access` 外，11 个插件都要从 devDependencies 取校验器。
 
 - `taobao`、`v2ex` 没有 `scripts.test`，手动运行 `node tests/verify-behavior.mjs`。
 - `full-access` 没有测试；用 `dsh --profile <profile> --dump-config` 检查 `sandbox-policy`、`approval`、`permission` 三行。
 
-根目录两个脚本校验浏览器半边，可带插件名只查一个：
+带界面的插件还会在 `npm test` 里调用根目录这两个脚本，也可以单独运行，带插件名只查一个：
 
 ```sh
 node verify-client-locales.mjs [插件]    # 中英词典键集合一致，每个 t(...) 都有文案

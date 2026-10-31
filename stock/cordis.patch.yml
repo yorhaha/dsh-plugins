@@ -4,7 +4,8 @@
 # states no config: every option defaults in `index.js` (DEFAULT_CONFIG), which
 # is the one place a default lives. A deployment that wants different caps,
 # pacing, or panel behaviour adds that key under this row — here or in its own
-# patch layer — and only the keys it names change.
+# patch layer. A row's `config` replaces whole, so an omitted key falls back to
+# DEFAULT_CONFIG.
 - insert:
     - id: stock
       name: 'dsh-stock'

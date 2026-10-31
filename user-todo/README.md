@@ -36,7 +36,30 @@
 
 ### 批量与写入
 
-`create_user_todos` 单次最多 `maxCreateBatch` 条，超过 `maxItems` 时返回 `list_full` 而不拒绝整批。`delete_user_todos` 传空数组返回 `invalid_body`；不带 `ids` 时只删除已完成条目，还有未完成条目则整个调用返回 `open_items_present`。写入没有版本号或冲突检测，全部串行、后写覆盖先写。
+`create_user_todos` 单次最多 `maxCreateBatch` 条；装不下 `maxItems` 的部分进 `skipped` 并标 `list_full`，不拒绝整批。`delete_user_todos` 不带 `ids` 时只删已完成条目，还有未完成条目就整次返回 `open_items_present`。写入没有版本号或冲突检测，全部串行、后写覆盖先写。
+
+## 失败码
+
+参数本身不合法（缺 `title`、类型不对、未知字段）是抛出的工具错误。其余分两类。
+
+整次调用失败，返回 `ok: false`：
+
+| 码 | 何时 |
+| --- | --- |
+| `open_items_present` | 不带 `ids` 删除，但仍有未完成条目 |
+| `subagent_denied` | `allowSubagentWrites: false` 时由子会话发起写入 |
+| `invalid_body` | `delete_user_todos` 传了空数组 |
+| `invalid_recurrence` / `unsupported_rule` | 新增条目的重复规则不合法 / 属于不支持的子集 |
+
+调用成功时，逐条结果各自带码：
+
+| 工具 | 字段 | 码 |
+| --- | --- | --- |
+| `create_user_todos` | `skipped[].reason` | `duplicate`（标题已存在）、`list_full`（达到 `maxItems`） |
+| `update_user_todos` | `results[].code` | `changed`、`unchanged`、`not_found`、`invalid_occurrence`、`not_recurring`、`invalid_recurrence` |
+| `delete_user_todos` | `absent` | 调用点名但清单里没有的 id |
+
+面板路由另有一套更细的字段码（`invalid_title`、`invalid_due_at`、`invalid_status`、`invalid_prefs` 等）与 `method_not_allowed`、`unknown_action`；它们只出现在 `/api/plugin-user-todo` 的响应里，不进模型上下文。
 
 ## 存储
 
@@ -54,7 +77,7 @@ dsh plugin --profile web add /绝对路径/dsh-plugins/user-todo
 
 | 字段 | 默认 | 说明 |
 | --- | --- | --- |
-| `toolNames` | 五个默认名 | 五个工具的名字；老行省略时各自使用默认名 |
+| `toolNames` | 五个工具默认名 | `list`/`create`/`update` 必填，`agenda`/`remove` 可省略（省略取默认名）；整行 `config` 不能省，插件在加载时要求它存在 |
 | `maxCreateBatch` / `maxUpdateBatch` / `maxDeleteBatch` | 20 / 50 / 50 | 单次批量上限 |
 | `maxTitleChars` / `maxNoteChars` | 200 / 2000 | 标题与备注字数上限 |
 | `maxItems` | 5000 | 清单总条目上限 |

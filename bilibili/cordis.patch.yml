@@ -4,7 +4,8 @@
 # states no config: every option defaults in `index.js` (DEFAULT_CONFIG), which
 # is the one place a default lives. A deployment that wants another account
 # slot, capture time, or login window adds that key under this row — here or in
-# its own patch layer — and only the keys it names change.
+# its own patch layer. A row's `config` replaces whole, so an omitted key falls
+# back to DEFAULT_CONFIG.
 #
 # The plugin declares no schema library, so it validates the row itself at load:
 # an unknown key, a malformed cron expression, or a bad account slot fails the

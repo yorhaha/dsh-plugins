@@ -3,8 +3,8 @@
 # The row id and package name must stay unique in the Loader graph. The row
 # states no config: every option defaults in `index.js` (DEFAULT_CONFIG), which
 # is the one place a default lives. A deployment that wants different limits,
-# caps, or pacing adds that key under this row — here or in its own patch layer —
-# and only the keys it names change.
+# caps, or pacing adds that key under this row — here or in its own patch layer.
+# A row's `config` replaces whole, so an omitted key falls back to DEFAULT_CONFIG.
 - insert:
     - id: v2ex
       name: 'dsh-v2ex'
