@@ -2,7 +2,7 @@
 
 给 DeepSeek Harness 用的 Outlook 邮件插件。邮件抓取到本机 SQLite 语料库，供助手按时间与文本检索。
 
-界面名是「Outlook 邮件」/「Outlook Mail」；包名、行 id、凭据 scope 与库文件统一用 `outlook`，与「只读 Outlook」的定位一致。
+界面名是「Outlook 邮件」/「Outlook Mail」；包名、行 id、凭据 scope 与库文件统一用 `outlook`。默认只做只读抓取；授予 `Mail.Send` 后助手可用 `outlook_send` 发信——这是本插件唯一的写操作，且必须显式确认。
 
 邮件抓取移植自 yorha 的 `core/yorha/connectors/{graph,mail}.py`，保留了它的设备代码流登录、`Prefer` 头约定、Graph 重试语义与时间戳游标；**持久化层换掉了**——不再依赖 Postgres，改用 `node:sqlite`（Node 内置）自持一个数据库文件。
 
@@ -15,9 +15,10 @@
 | `outlook_sync` | `backfill`（可选） | 后台任务 id 与本轮页数/写入/未变/删除计数 |
 | `outlook_search` | `query`、`since`、`until`、`from`、`limit`、`offset` | 匹配总数与本页条目，附数据新鲜度 |
 | `outlook_item` | `id`（必填，搜索返回的 id） | 单条完整记录（含正文） |
+| `outlook_send` | `to`、`cc`、`bcc`、`subject`、`body`、`bodyType`、`importance`、`saveToSentItems`、`confirm`（`confirm: true` 才真发） | 发送结果；未带 `confirm: true` 时只回一条预览 |
 | `outlook_schedule` | `recreate`（可选） | 定时抓取任务的建立/重建结果 |
 
-前三个工具只读本机语料库，`outlook_schedule` 只动本插件的定时任务；插件不向账号写入任何内容。
+`outlook_sync` / `outlook_search` / `outlook_item` 只读本机语料库，`outlook_schedule` 只动本插件的定时任务；`outlook_send` 是唯一的写操作，直接调用 Graph `/me/sendMail` 发信（见下文「发信」）。
 
 抓取受 Microsoft 限流，因此 `outlook_sync` **不在工具调用里同步等待**：它用 `ctx.jobs` 起一个后台任务并立刻返回 id，模型用 `job_output` 收结果。没有 job registry 的组装会退化为同步执行。
 
@@ -46,7 +47,7 @@ cd dsh-plugins/outlook && pnpm install
 | `accountId` | `default` | 凭据记录槽位，取值须匹配 `^[a-z][a-z0-9-]*$`；一个账号一个槽位 |
 | `clientId` | 空 | Azure 应用注册的客户端 id（公共客户端 + 设备代码流）；首次使用需自行注册并填入，**可热改**，在插件页的 Outlook 邮件行里编辑（须是 GUID） |
 | `tenant` | `consumers` | 授权租户；个人账号用 `consumers`，工作和个人都要用 `common`；**可热改** |
-| `scopes` | `Mail.Read` | 委托权限；`offline_access` 由登录库自动附加。改动这个列表后需要重新登录一次以同意新权限 |
+| `scopes` | `['Mail.Read', 'Mail.Send']` | 委托权限；`offline_access` 由登录库自动附加。`Mail.Send` 是发信所需；改动这个列表后需要重新登录一次以同意新权限（升级到本版本后需为 `Mail.Send` 重登一次） |
 | `databasePath` | `$DSH_HOME/storages/outlook/outlook.db` | 语料库文件；一个账号一个库 |
 | `scheduleCron` | `0 9 * * *` | 定时抓取的 5 段 cron 表达式，按宿主时区求值 |
 | `mailInitialDays` | `90` | 首次抓取回看的天数；`0` 表示全量。更早的邮件按需 `backfill` |
@@ -133,13 +134,23 @@ FTS5 的 `unicode61` 分词器会把一整串中文当成**一个** token（"产
 - 到点投递是**一次真实的模型回合**（会唤起绑定的会话，即使它已经关闭），所以任务提示词写的是"调用 `outlook_sync` 并汇总新增"。
 - 在「自动化任务」里删掉任务后不会自动恢复，这正是页面要提供"重新建立"的原因。
 
+## 发信
+
+`outlook_send` 是本插件唯一的写操作，直接 `POST /me/sendMail`，一次一封。
+
+- **二次确认**：不带 `confirm: true` 时只返回预览（收件人、主题、正文格式、是否存 Sent Items），**不联网**。助手把预览给用户看过、用户点头后，再带 `confirm: true` 调用。
+- **权限预检**：发送前读这份登录实际授予的 scope，缺 `Mail.Send` 返回 `scope_missing`，不把它误报成 `auth_required`；完全没有登录记录才报 `auth_required`。升级到本版本后需在插件页重新登录一次以同意 `Mail.Send`。
+- **只发一封、限收件人**：to/cc/bcc 合计上限 100，不做批量；地址逐个校验，有一个非法就整封拒绝，不会悄悄缩小受众。
+- **结果**：`/me/sendMail` 返回 202 空响应，工具报 `status: 'sent'`。`saveToSentItems`（默认 true）决定是否留档；留档的副本会在下一次抓取时从「已发送」文件夹自然入库，发出去的邮件随后也能被 `outlook_search` 搜到。
+- **不经插件页**：发信没有走 `/api/plugin-outlook` 桥接，页面不能发信，只有模型工具能发；定时任务也只抓取、不发信。
+
 ## 失败怎么返回
 
 参数校验失败会抛错；运行期的失败返回封闭错误码，模型据此决定重试时机：`not_configured`、`credential_unavailable`、`auth_required`、`token_failed`、`rate_limited`、`network_error`、`upstream_5xx`、`http_<status>`、`invalid_json`、`invalid_envelope`、`invalid_settings`、`cancelled`。Graph 自己解释的 4xx 原文只出现在 `http_<status>` 上。
 
 ## 已知边界
 
-- 上游接口由微软决定，字段与可用性随时会变。插件只读 `/me/messages` 与 `/me/mailFolders`，不发信、不改日程、不写账号里的任何内容。
+- 上游接口由微软决定，字段与可用性随时会变。抓取只读 `/me/messages` 与 `/me/mailFolders`；发信只调用 `/me/sendMail`，是本插件唯一的写操作，需带 `Mail.Send` 权限且显式 `confirm: true`。不改日程、不改邮箱里的其他内容。
 - **附件只记 `hasAttachments`**，不下载附件内容；正文不含附件正文。
 - 邮件的删除在本地是**看不见**的：时间戳游标只会被"收到得更晚"的邮件推动，一封被删除的邮件会留在语料里，直到 `backfill` 覆盖到或手动清理。
 - 凭据缓存明文存在 `$DSH_HOME/.credentials.yaml`（0600，无加密，也没有 OS keychain provider）。

@@ -622,9 +622,9 @@ check('E12 an excluded folder this mailbox does not have fails the capture',
 
 const mounted = await mount({ databasePath: join(directory, 'mounted.db') })
 const tools = new Map(mounted.registered.map((tool) => [tool.name, tool]))
-check('F1 the plugin registers its four tools and nothing else',
-  ['outlook_sync', 'outlook_search', 'outlook_item', 'outlook_schedule'].every((toolName) => tools.has(toolName))
-  && tools.size === 4,
+check('F1 the plugin registers its five tools and nothing else',
+  ['outlook_sync', 'outlook_search', 'outlook_item', 'outlook_send', 'outlook_schedule'].every((toolName) => tools.has(toolName))
+  && tools.size === 5,
   show([...tools.keys()]))
 
 /** Validate one tool value against the schema the tool declares. */
@@ -977,8 +977,8 @@ check('I5 the page reads the granted scopes through the bridge',
   show(grantedStatus))
 check('I6 the removed To Do surface is refused as an unknown action',
   (await bridge.fetch(post({ action: 'tasks.list' }))).status === 400)
-check('I7 the default scopes request mail only',
-  show(defaultConfig.scopes) === show(['Mail.Read']), show(defaultConfig.scopes))
+check('I7 the default scopes request mail read and send',
+  show(defaultConfig.scopes) === show(['Mail.Read', 'Mail.Send']), show(defaultConfig.scopes))
 
 // ── K. the zone a search bound is read in ───────────────────────────────────
 
@@ -1146,6 +1146,102 @@ await bounds.dispose()
   check('M an existing corpus file is tightened to 0600', mode === 0o600, mode.toString(8))
   await rm(directory, { recursive: true, force: true })
 }
+
+// ── N. sending mail ─────────────────────────────────────────────────────────
+
+const { composeMessage, sendMail } = await import('../src/send.js')
+
+const composed = composeMessage({
+  to: ['a@example.com', 'A@example.com'],
+  cc: [{ address: 'b@example.com', name: 'Bee' }],
+  subject: 'Hi',
+  body: 'Hello',
+  bodyType: 'html',
+  importance: 'high',
+})
+check('N1 a message composes recipients, deduplicates, and sets the body type',
+  composed.message.toRecipients.length === 1
+  && composed.message.ccRecipients[0].emailAddress.name === 'Bee'
+  && composed.message.body.contentType === 'HTML'
+  && composed.message.importance === 'high'
+  && composed.summary.to.length === 1,
+  show(composed.summary))
+let noRecipient = null
+try {
+  composeMessage({ to: [], subject: 'x', body: 'y' })
+} catch (error) {
+  noRecipient = error.code
+}
+check('N2 a message with no recipient is refused before any request', noRecipient === 'no_recipients', show(noRecipient))
+let badAddress = null
+try {
+  composeMessage({ to: ['not-an-address'], subject: 'x', body: 'y' })
+} catch (error) {
+  badAddress = error.code
+}
+check('N3 a malformed address fails the whole message', badAddress === 'invalid_recipient', show(badAddress))
+
+const sendScript = scriptedFetch([{ status: 202 }])
+const sendGraph = new GraphClient({ auth: { accessToken: async () => 'token' }, fetchImpl: sendScript.fetchImpl })
+const sendResult = await sendMail({ client: sendGraph, message: composed.message, saveToSentItems: false })
+check('N4 sendMail posts JSON to /me/sendMail and reads the empty 202',
+  sendScript.requests[0].method === 'POST'
+  && sendScript.requests[0].url === 'https://graph.microsoft.com/v1.0/me/sendMail'
+  && sendScript.requests[0].headers['content-type'] === 'application/json'
+  && JSON.parse(sendScript.requests[0].body).saveToSentItems === false
+  && sendResult === null,
+  show({ url: sendScript.requests[0].url, body: sendScript.requests[0].body }))
+
+/** Build one outlook_send tool against scripted sign-in and transport. */
+function sendTool({ auth, client }) {
+  const built = buildTools({
+    ctx: { get: () => undefined },
+    store: { search: () => ({ total: 0, rows: [] }), item: () => undefined, mailState: () => null, status: () => ({}), count: () => 0 },
+    syncer: { busy: false },
+    auth,
+    jobs: undefined,
+    config: { scheduleCron: '0 9 * * *' },
+    createClient: () => client,
+    zone: () => 'Asia/Shanghai',
+    logger: {},
+  })
+  return built.find((tool) => tool.name === 'outlook_send')
+}
+
+const sending = []
+const throwingClient = { post: async () => { throw new Error('must not send') } }
+const readyAuth = { configured: true, grantedScopes: async () => ['Mail.Read', 'Mail.Send'] }
+
+const gateTool = sendTool({ auth: readyAuth, client: throwingClient })
+const notConfirmed = await gateTool.execute({ to: ['a@example.com'], subject: 'Hi', body: 'Hello' }, {})
+check('N5 without confirm the tool returns a preview and sends nothing',
+  notConfirmed.status === 'needs_confirmation' && notConfirmed.to[0] === 'a@example.com',
+  show(notConfirmed))
+check('N5b the preview matches the declared schema', assertToolValue(gateTool, notConfirmed).length === 0,
+  show(assertToolValue(gateTool, notConfirmed)))
+
+const scopeTool = sendTool({ auth: { configured: true, grantedScopes: async () => ['Mail.Read'] }, client: throwingClient })
+const scopeMissing = await scopeTool.execute({ to: ['a@example.com'], subject: 'Hi', body: 'Hello', confirm: true }, {})
+check('N6 a sign-in without Mail.Send is reported as scope_missing and sends nothing',
+  scopeMissing.status === 'skipped' && scopeMissing.errorCode === 'scope_missing', show(scopeMissing))
+
+const unconfiguredTool = sendTool({ auth: { configured: false, grantedScopes: async () => [] }, client: throwingClient })
+const notConfigured = await unconfiguredTool.execute({ to: ['a@example.com'], subject: 'Hi', body: 'Hello', confirm: true }, {})
+check('N7 an unconfigured plugin refuses a confirmed send',
+  notConfigured.status === 'skipped' && notConfigured.errorCode === 'not_configured', show(notConfigured))
+
+const okTool = sendTool({ auth: readyAuth, client: { post: async (path, { body }) => { sending.push({ path, body }); return null } } })
+const sent = await okTool.execute({ to: ['a@example.com'], subject: 'Hi', body: 'Hello', confirm: true }, {})
+check('N8 a confirmed send posts to /me/sendMail and reports sent',
+  sent.status === 'sent' && sent.ok === true && sending.length === 1 && sending[0].path === '/me/sendMail',
+  show(sent))
+check('N8b the sent value matches the declared schema', assertToolValue(okTool, sent).length === 0,
+  show(assertToolValue(okTool, sent)))
+
+const failingTool = sendTool({ auth: readyAuth, client: { post: async () => { throw new GraphError('rate_limited', 'throttled') } } })
+const failedSend = await failingTool.execute({ to: ['a@example.com'], subject: 'Hi', body: 'Hello', confirm: true }, {})
+check('N9 a Graph failure while sending is reported as failed with its code',
+  failedSend.status === 'failed' && failedSend.errorCode === 'rate_limited', show(failedSend))
 
 // ── teardown ────────────────────────────────────────────────────────────────
 

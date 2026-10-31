@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Outlook Mail",
-    "description": "Capture your own Outlook mail into a locally searchable corpus, with device-code sign-in and recurring sync."
+    "description": "Capture your own Outlook mail into a locally searchable corpus, with device-code sign-in, recurring sync, and optional sending."
   }
 }

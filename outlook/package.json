@@ -1,7 +1,7 @@
 {
   "name": "dsh-outlook",
-  "version": "0.2.0",
-  "description": "Outlook mail for DeepSeek Harness: capture your messages into a local corpus and search them by time and text.",
+  "version": "0.3.0",
+  "description": "Outlook mail for DeepSeek Harness: capture your messages into a local corpus, search them by time and text, and optionally send mail.",
   "private": true,
   "license": "MIT",
   "type": "module",

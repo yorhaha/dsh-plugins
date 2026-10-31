@@ -13,6 +13,7 @@ import z from '@deepseek-ai/schemastery'
 
 import { GraphAuth } from './src/auth.js'
 import { registerBridge } from './src/bridge.js'
+import { GraphClient } from './src/graph.js'
 import { DEFAULT_CRON, ensureTask, recreateTask, taskState } from './src/schedule.js'
 import { openStore } from './src/store.js'
 import { OutlookSyncer } from './src/sync.js'
@@ -49,7 +50,7 @@ export const Config = z.object({
   /** Authority tenant; `common` serves personal and work accounts. */
   tenant: z.string().default('common').pattern(/^[A-Za-z0-9.-]+$/).volatile(),
   /** Delegated Graph scopes to request. */
-  scopes: z.array(z.string()).default(['Mail.Read']),
+  scopes: z.array(z.string()).default(['Mail.Read', 'Mail.Send']),
   /** Absolute path of the SQLite corpus. */
   databasePath: z.string().required(),
   /** Recurrence of the capture task, in the host's own time zone. */
@@ -172,6 +173,10 @@ export function apply(ctx, config) {
       auth,
       jobs: ctx.get('jobs'),
       config,
+      // A send builds its own authenticated client, sharing this request
+      // deadline and the plugin's lifetime signal, so a stalled connection
+      // cannot outlive unload.
+      createClient: ({ signal, timeoutMs }) => new GraphClient({ auth, logger: ctx.logger, signal, timeoutMs }),
       // A search bound names a day the way the user reads it, so the tool reads
       // it in the zone this deployment states rather than in UTC.
       zone: pluginZone,

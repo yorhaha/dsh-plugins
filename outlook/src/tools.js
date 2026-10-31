@@ -15,6 +15,7 @@
  */
 
 import { ensureTask, listTasks, recreateTask, scheduleOf, taskState } from './schedule.js'
+import { composeMessage, sendMail } from './send.js'
 import { STALE_AFTER_MS } from './store.js'
 import { errorCode } from './sync.js'
 import { parseGraphDateTime } from './time.js'
@@ -30,6 +31,9 @@ const READ_TIMEOUT_MS = 15_000
 
 /** Deadline for the sync tool; the background path returns immediately. */
 const SYNC_TIMEOUT_MS = 240_000
+
+/** Deadline for sending one message: a single Graph request. */
+const SEND_TIMEOUT_MS = 60_000
 
 /** Nullable scalar, as the harness's enforced JSON Schema subset expresses it. */
 const NULLABLE_STRING = { oneOf: [{ type: 'string' }, { type: 'null' }] }
@@ -212,12 +216,13 @@ function pluginTimeZone() {
  * @param options.auth - Sign-in state.
  * @param options.jobs - The job registry, when the composition provides one.
  * @param options.config - Live plugin configuration.
+ * @param options.createClient - Builds an authenticated Graph client for one request.
  * @param options.clock - Current instant in milliseconds.
  * @param options.zone - IANA zone a time argument without an offset is read in.
  * @param options.logger - Plugin logger.
  * @returns the tool definitions, in registration order.
  */
-export function buildTools({ ctx, store, syncer, auth, jobs, config, clock = Date.now, zone = pluginTimeZone, logger, shutdownSignal }) {
+export function buildTools({ ctx, store, syncer, auth, jobs, config, createClient, clock = Date.now, zone = pluginTimeZone, logger, shutdownSignal }) {
   return [
     {
       name: 'outlook_sync',
@@ -411,6 +416,87 @@ export function buildTools({ ctx, store, syncer, auth, jobs, config, clock = Dat
       },
     },
     {
+      name: 'outlook_send',
+      description:
+        'Send an email as the signed-in Outlook account. '
+        + 'This is irreversible. Call it without confirm to receive a preview, show that preview to the user, and call it again with confirm: true only after they approve the exact recipients, subject, and body. '
+        + 'Requires the Mail.Send scope.',
+      parameters: parameters({
+        to: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Primary recipients, as email addresses.',
+        },
+        cc: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Carbon-copy recipients, as email addresses.',
+        },
+        bcc: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Blind-carbon-copy recipients, as email addresses.',
+        },
+        subject: {
+          type: 'string',
+          description: 'Subject line. May be empty.',
+        },
+        body: {
+          type: 'string',
+          description: 'The message body, in the format bodyType names.',
+        },
+        bodyType: {
+          type: 'string',
+          enum: ['text', 'html'],
+          description: 'Body format. Defaults to text.',
+        },
+        importance: {
+          type: 'string',
+          enum: ['low', 'normal', 'high'],
+          description: 'Message importance. Defaults to normal.',
+        },
+        saveToSentItems: {
+          type: 'boolean',
+          description: 'Keep a copy in Sent Items. Defaults to true.',
+        },
+        confirm: {
+          type: 'boolean',
+          description: 'Must be true to actually send. Omit or pass false to receive a preview without sending.',
+        },
+      }, ['to', 'subject', 'body']),
+      output: {
+        schema: {
+          type: 'object',
+          properties: {
+            ok: { type: 'boolean' },
+            status: { type: 'string', enum: ['sent', 'needs_confirmation', 'skipped', 'failed'] },
+            to: { type: 'array', items: { type: 'string' } },
+            cc: { type: 'array', items: { type: 'string' } },
+            bcc: { type: 'array', items: { type: 'string' } },
+            subject: { type: 'string' },
+            bodyType: { type: 'string', enum: ['text', 'html'] },
+            importance: NULLABLE_STRING,
+            saveToSentItems: { type: 'boolean' },
+            messageId: { ...NULLABLE_STRING, description: 'The sent message id, when Graph reports one.' },
+            reason: { ...NULLABLE_STRING, description: 'Why the message was not sent.' },
+            errorCode: { ...NULLABLE_STRING, description: 'Stable code for a skipped or failed send.' },
+          },
+          required: ['ok', 'status', 'to', 'subject', 'bodyType', 'saveToSentItems'],
+          additionalProperties: false,
+        },
+        render: renderValue,
+      },
+      timeoutMs: SEND_TIMEOUT_MS,
+      isConcurrencySafe: () => false,
+      presentCall: (args) => ({
+        card: 'generic',
+        title: 'Outlook send',
+        kind: 'write',
+        rawInput: args,
+      }),
+      execute: (args, exec) => sendMessage({ auth, createClient, args, exec, shutdownSignal, logger }),
+    },
+    {
       name: 'outlook_schedule',
       description:
         'Set up or restore the recurring Outlook capture in the Automation tasks list. '
@@ -602,5 +688,75 @@ async function setUpSchedule({ ctx, config, args, exec }) {
     }
   } catch (error) {
     return { ok: false, status: 'failed', taskId: null, nextRunAt: null, reason: errorCode(error), tasks: [] }
+  }
+}
+
+/**
+ * Send one email, refusing to touch the network until the caller has explicitly
+ * confirmed and the sign-in is known to carry `Mail.Send`.
+ *
+ * The three gates run in order and each leaves the mailbox untouched: an
+ * unconfirmed call returns a preview, an unconfigured plugin reports
+ * `not_configured`, and a granted-scope set that lacks `Mail.Send` reports
+ * `scope_missing` rather than letting Graph's 403 read as an expired sign-in.
+ *
+ * @param options - Run options.
+ * @param options.auth - Sign-in state.
+ * @param options.createClient - Builds an authenticated Graph client for one request.
+ * @param options.args - Raw tool arguments.
+ * @param options.exec - Tool execution context.
+ * @param options.shutdownSignal - The plugin's lifetime signal, when provided.
+ * @param options.logger - Plugin logger.
+ * @returns the tool value.
+ */
+async function sendMessage({ auth, createClient, args, exec, shutdownSignal, logger }) {
+  const { message, summary } = composeMessage(args)
+  const saveToSentItems = args?.saveToSentItems !== false
+  const base = {
+    ok: false,
+    status: 'skipped',
+    ...summary,
+    saveToSentItems,
+    messageId: null,
+    reason: null,
+    errorCode: null,
+  }
+  // Nothing leaves the machine until the caller confirms the exact message.
+  if (args?.confirm !== true) {
+    return { ...base, status: 'needs_confirmation', reason: 'confirm_required' }
+  }
+  if (!auth.configured) {
+    return { ...base, reason: 'not_configured', errorCode: 'not_configured' }
+  }
+  let granted = []
+  try {
+    granted = await auth.grantedScopes()
+  } catch {
+    granted = []
+  }
+  if (!granted.some((scope) => scope.toLowerCase() === 'mail.send')) {
+    // No stored sign-in at all is a sign-in problem, not a scope problem; say so
+    // instead of asking the user to re-consent to a permission they never gave.
+    if (granted.length === 0) {
+      return { ...base, reason: 'auth_required', errorCode: 'auth_required' }
+    }
+    return { ...base, reason: 'scope_missing', errorCode: 'scope_missing' }
+  }
+  const client = createClient({
+    signal: stopSignal(shutdownSignal, exec?.signal),
+    timeoutMs: SEND_TIMEOUT_MS,
+  })
+  try {
+    const sent = await sendMail({ client, message, saveToSentItems })
+    return {
+      ...base,
+      ok: true,
+      status: 'sent',
+      messageId: typeof sent?.id === 'string' ? sent.id : null,
+    }
+  } catch (error) {
+    const code = errorCode(error)
+    logger?.warn?.(`outlook: sending mail failed: ${code}`)
+    return { ...base, status: 'failed', reason: code, errorCode: code }
   }
 }

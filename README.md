@@ -13,7 +13,7 @@ DeepSeek Harness 的本地插件集合。每个子目录是一个可独立安装
 | [`file-memory`](./file-memory/) | `dsh-file-memory` | 记忆 | — | 侧栏 | 纯 Markdown 长期记忆；注入提示段，侧栏浏览与编辑，不注册工具 |
 | [`full-access`](./full-access/) | `dsh-full-access` | 默认完全权限 | — | — | 只覆盖权限行的组合层补丁，没有代码；新会话以「完全权限」启动 |
 | [`notify`](./notify/) | `dsh-notify` | 通知 | 1 | 插件页 | 通过 PushPlus 推送到手机；任意多个目标，逐个投递；`provide` 一个 `notify` 服务供其他插件投递 |
-| [`outlook`](./outlook/) | `dsh-outlook` | Outlook 邮件 | 4 | 插件页 | 设备代码登录；邮件抓进本机 SQLite 后按时间与文本检索 |
+| [`outlook`](./outlook/) | `dsh-outlook` | Outlook 邮件 | 5 | 插件页 | 设备代码登录；邮件抓进本机 SQLite 后按时间与文本检索；授予 `Mail.Send` 后可按显式确认发信 |
 | [`stock`](./stock/) | `dsh-stock` | 股票行情 | 13 | 侧栏 + 行情卡 | 沪深、港股、美股行情与 K 线、资金流、财务、榜单、新闻、宏观；自选股与持仓标记 |
 | [`taobao`](./taobao/) | `dsh-taobao` | 网上购物助手 | 4 | — | 淘宝/天猫、京东、拼多多、苏宁、唯品会、抖音、快手七渠道比价 |
 | [`user-todo`](./user-todo/) | `dsh-user-todo` | 日历与待办 | 5 | 侧栏 | 跨会话的个人待办，带月历与到期提醒；面板与五个工具共享同一份清单（含删除与「清除已完成」），提醒经 `notify` 推送 |
@@ -231,7 +231,7 @@ stderr 出现 `disabling profile plugin row "<id>": … incompatible with dsh <v
 - **仓库里没有真实凭据。** 测试中出现的 `sk-live-value-001`、`ghp_example_value` 等都是假值；真实的 key 请放进凭据库，不要提交。
 - **凭据存储。** `deepxiv`、`notify`、`bilibili`、`outlook`、`zhihu`、`xiaohongshu` 的凭据在 `~/.dsh/.credentials.yaml`（0600，明文）；其余插件的数据也不加密。
 - **插件页是本机 HTTP 接口。** 它们挂在 `/api/...` 下，Harness 的 Host/Origin 围栏与浏览器鉴权在进入处理函数前已经跑过，但挡不住同机其他进程。`deepxiv`、`notify` 的页面按设计明文显示自己的 token，方便复制。
-- **向外写入只发生在少数地方。** `notify` 发消息；`full-access` 取消文件围栏并关闭审批，只应在自己信任的机器与工作目录上启用。其余插件只读上游、只写本机。
+- **向外写入只发生在少数地方。** `notify` 发消息；`outlook` 在授予 `Mail.Send` 后可按显式确认发信；`full-access` 取消文件围栏并关闭审批，只应在自己信任的机器与工作目录上启用。其余插件只读上游、只写本机。
 - **推广披露。** `taobao` 默认不附带 `inviteCode`，结果里的 `affiliate` 字段为 `null`；只有你显式配置自己的推广码后，购买链接才带推广参数并给出披露。
 - **外部内容是数据，不是指令。** 论文、帖子、行情、邮件、微信消息都会进入模型上下文；各插件在自己的工具描述里标注了这一点。
 - **定时任务绑定会话。** `bilibili`、`outlook`、`wechat` 的抓取任务属于创建它的会话；在「自动化任务」里删掉后不会自动恢复，三个插件页都提供「重建」入口（`wechat` 也可以让助手调 `wechat_schedule`，`recreate: true`）。

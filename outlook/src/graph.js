@@ -105,6 +105,26 @@ export class GraphClient {
   }
 
   /**
+   * Perform one POST and return its parsed JSON body.
+   *
+   * A write is not idempotent: the shared policy deliberately does not repeat a
+   * POST whose transport failed or whose reply was an uncertain 503/504, because
+   * the mailbox may already have acted on it. A 429 that names "nothing was
+   * processed" is still retried, and a 401 refreshes the token once.
+   *
+   * @param path - Path below the endpoint root.
+   * @param options - Request options.
+   * @param options.params - Query parameters.
+   * @param options.headers - Extra request headers.
+   * @param options.body - Value serialized as the JSON request body.
+   * @returns the parsed body, or null when the response carried none.
+   * @throws {GraphError} with a stable code.
+   */
+  async post(path, { params, headers, body } = {}) {
+    return this.#send('POST', path, { params, headers, body })
+  }
+
+  /**
    * Perform one authenticated request, under the retry and refresh policy every
    * verb shares.
    * @param method - HTTP method.
