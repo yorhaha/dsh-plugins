@@ -36,8 +36,8 @@ const failures = []
  * The browser half of every plugin this check applies to, each with the
  * formatters it must provide.
  *
- * `when` is the shared name for "one instant, rendered"; `stock` names its pair
- * after what they show, and is checked through both.
+ * `when` is the shared name for "one instant, rendered"; `user-todo` names its
+ * pair after what they show, and is checked through both.
  */
 const TARGETS = [
   { dir: 'bilibili', file: 'web/client.js', formatters: ['when'] },
@@ -45,7 +45,6 @@ const TARGETS = [
   { dir: 'notify', file: 'web/client.js', formatters: ['when'] },
   { dir: 'zhihu', file: 'web/client.js', formatters: ['when'] },
   { dir: 'outlook', file: 'web/client.js', formatters: ['when'] },
-  { dir: 'stock', file: 'client.js', formatters: ['formatTime', 'formatOpening'] },
   { dir: 'user-todo', file: 'client.js', formatters: ['timeText', 'dateTimeShort'] },
   { dir: 'wechat', file: 'web/client.js', formatters: ['stamp'] },
   { dir: 'xiaohongshu', file: 'web/client.js', formatters: ['when'] },

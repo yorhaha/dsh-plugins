@@ -1,8 +1,6 @@
 # dsh-stock
 
-沪深、港股、美股的行情、指数、新闻与宏观查询，注册为十三个 Host 工具，走腾讯与东方财富的公开接口。每次调用发一个 GET，按严格字段校验转换响应，返回有界的 JSON。本地只存三样东西：自选股、在自选股上标的持仓，以及面板上方那行指数。
-
-本 bundle 还带浏览器半边：`stock_quote` / `stock_watchlist` 的结果卡，以及侧栏打开的自选股面板。
+沪深、港股、美股的行情、指数、新闻与宏观查询，注册为十二个 Host 工具，走腾讯与东方财富的公开接口。每次调用发一个 GET，按严格字段校验转换响应，返回有界的 JSON。本 bundle 只有 Host 半边：没有浏览器入口，也不落盘——行情读出即随结果丢弃。
 
 ## 工具
 
@@ -20,7 +18,6 @@
 | `stock_rank` | `scope`（`sector`/`stock`）、`board`、`sort`（`change_pct`/`turnover`/`volume`）、`order`、`count`（1–50）、`offset` | 榜单：`sector` 取 `hy`/`dy`/`gn`/`all` 板块，`stock` 取 `aStock`/`cyb` 个股 |
 | `stock_news` | `code`、`limit`（1–20，默认 10） | 上游为该代码持有的最新新闻：时间、标题、来源、链接，有摘要时带摘要；固定一块 20 条，不能翻页 |
 | `stock_macro` | `indicator`（`gdp`/`cpi`/`ppi`/`pmi`/`m2`）、`periods`（1–24，默认 6） | 某项内地宏观指标的最新若干期 |
-| `stock_watchlist` | `action`（`list`/`add`/`remove`/`move`/`mark`/`unmark`/`clear`）、`scope`、`codes`、`code`、`to`、`cost`、`quantity`、`confirm` | 被寻址的清单连同行情与持仓标记，以及本次改了什么；`holdings` 逐条给出 `price`、`market_value`、`profit`、`profit_pct` |
 
 代码形如 `sh600519`、`sz399001`、`bj920008`、`hk00700`、`usAAPL`；美股在接口需要时带交易所后缀（`.OQ`、`.N`、`.PS`、`.AM`），`stock_kline` 与 `stock_moneyflow` 必须有。指数只接受 `none` 复权；美股日线只有 `qfq`。
 
@@ -37,20 +34,6 @@
 
 每条行情、K 线、榜单行与财报都带 `snapshot.queried_at`（本进程发出请求的时刻），数据自身的时点看接口给出的 `as_of`。上游省略的字段记 `null` 而不是不出现。`note` 只在这次结果需要说明时出现。长期有效的免责说明集中在一个常量提示段 `stock:caveats`：行情接口没有稳定性承诺、本地不存行情、不保证覆盖完整、行情不构成投资建议。
 
-## 自选股
-
-侧栏「自选股」面板与工具改的是同两份清单，走本 bundle 自己的路由 `/api/plugin-stock/watchlist`。面板从不直接请求上游：行情都经 Host 那条串行、有节奏的客户端，浏览器跑不过请求间隔。
-
-清单上方有一行**指数行**，每格是一个内地指数的名称、最新值、涨跌，以及当日分时线。它有独立的 `+`（只搜指数）、独立的 `⋯`（清空）和独立的 `indexMaxEntries` 上限。从未放过指数行的文档初始为上证、深证成指、创业板指、科创 50、沪深 300；此后只保留用户放进去的，清空后就一直是空的，重启也一样。
-
-自选行显示最新价、涨跌和当日开盘、最高、最低；成交额与换手率留在 `stock_quote` 的结果卡上。每行的 `⋯` 可重排、删除，或把它标为持仓，可带平均成本与股数。标记过的行带 `持仓` 徽标，成本与盈亏按裸数字显示；两个数字都不给的标记同样有效，只留徽标。标记随条目存储、重启后仍在，工具也读写它。
-
-每个自选行与指数格还会画当日分时线，颜色取当日涨跌方向，昨收在区间内时作为基准线。数据就是 `stock_minute` 读的那条序列，按 `sparklinePoints` 抽稀，在清单之后单独发一次请求，所以行情轮询从不等它；Host 按 `sparklineRefreshMs` 缓存一条序列，每次请求最多取 `sparklineMaxFetches` 个代码，长清单靠后续轮询逐步补齐。
-
-面板按自身宽度重排（容器查询加配套的 `@media`，断点 640px 与 420px），手机与窄主栏表现一致。打开时读一次，之后在页面可见、自动刷新打开、且至少一个已列市场在交易时段内时每 `panelRefreshMs` 读一次；收盘时段改为等 `market.next_open_at`，不反复读已收盘的市场。刷新控件旁的开关暂停轮询，状态存在文档里；`panelRefreshMs: 0` 不轮询，也不显示开关。
-
-两份清单都持久化：storage 根下的一个 `stock` domain（`$DSH_HOME/storages/stock.json`），装 `entries`、`indices` 和最后一次改动的时刻，每次写入与每次打开都过 domain 的 zod schema。代码按 `stock_search` 返回的原样规范存储，加重复项会被报告而不是重复写入，顺序就是用户的顺序，`move` 取所指清单内从 1 开始的位置，两个 `*MaxEntries` 上限在 `note` 里报告「没存进去」，一个不可用的代码会整次拒绝，`clear` 需要 `confirm: true` 且只清它点名的清单。
-
 ## 失败
 
 参数校验直接抛错，模型能看到要改什么。之后的失败都作为值返回：
@@ -63,7 +46,7 @@
 
 ## 请求
 
-一个进程内客户端服务全部十三个工具与面板路由，所以请求串行、按 `minIntervalMs` 间隔，并在传输失败、5xx、403 或 429 后按 host 退避。某个 host 失败只停它自己。七个 host、十五条端点路径，每条路径的参数键是封闭白名单；不跟随重定向，不读环境代理，响应体上限 `responseLimitBytes`。
+一个进程内客户端服务全部十二个工具，所以请求串行、按 `minIntervalMs` 间隔，并在传输失败、5xx、403 或 429 后按 host 退避。某个 host 失败只停它自己。七个 host、十六条端点路径（十五条固定路径加报价前缀 `/q=`），每条路径的参数键是封闭白名单；不跟随重定向，不读环境代理，响应体上限 `responseLimitBytes`。
 
 腾讯侧：`qt.gtimg.cn`、`web.ifzq.gtimg.cn`、`smartbox.gtimg.cn` 提供搜索、行情、日线、分时；`proxy.finance.qq.com` 提供分钟线、板块榜单与个股新闻，因为 `web.ifzq` 的分钟线路径已重定向到一个解析不了的 host。`stock_minute` 走 `web.ifzq` 的多日路径并报告其中最新一天，因为单日路径对每个请求都回反爬挑战；美股序列保留自己的单日端点。东方财富侧：`push2.eastmoney.com`、`push2his.eastmoney.com`、`datacenter-web.eastmoney.com` 提供市场总览、资金流、财务与宏观报告。
 
@@ -88,23 +71,21 @@
 | `macroDefaultPeriods` / `macroMaxPeriods` | `6` / `24` | 宏观期数 |
 | `rankDefaultCount` / `rankMaxCount` / `rankMaxOffset` | `20` / `50` / `5000` | 榜单行数与偏移 |
 | `toolTimeoutMs` | `60000` | 单次工具调用预算 |
-| `watchlistMaxEntries` / `indexMaxEntries` | `50` / `10` | 自选股上限；指数行上限 |
-| `panelRefreshMs` | `10000` | 打开的面板重读间隔；`0` 关闭轮询 |
-| `sparklinePoints` | `60` | 一行分时线保留的点数，至少 2 |
-| `sparklineRefreshMs` / `sparklineMaxFetches` | `120000` / `4` | 一条序列的缓存窗口；一次面板请求最多等几条分时（`0` 表示不再请求） |
 
 ## 验证改动
 
-`index.js` 是无依赖的纯 ESM，`node --check` 与直接 import 都能用。`pnpm test` 跑三个离线检查：
+`index.js` 是无依赖的纯 ESM，`node --check` 与直接 import 都能用。`pnpm test` 跑一个离线检查：
 
 ```sh
-node tests/verify-watchlist.mjs   # 清单、它的存储与面板路由
 node tests/verify-endpoints.mjs   # 真实序列无法按需复现的接口怪癖
-node tests/verify-cards.mjs       # 行情卡
 ```
 
-`verify-watchlist.mjs` 脚本化传输层并顶替挂载的 storage domain，覆盖规范化、去重、配置上限、整次拒绝、存储变更链串行化的并发新增、重启后重开、持仓标记、下一次开盘时刻，以及路由的行压缩、缺陷响应、体积上限、读取预算、序列缓存和「代码没有序列」时的失败。`verify-endpoints.mjs` 覆盖 23 字节关键词前缀、最新分时行把当日累计成交额重述到前一行之下、以及别处出现递减时整次调用失败。`verify-cards.mjs` 按模块加载器契约加载 `client.js`，用真实 React 在两种语言下渲染结果卡，在 jsdom 里驱动其原始数据展开，并断言每种畸形载荷仍然回退。结果卡载荷记录在 `tests/fixtures/`，`--record` 会用线上接口重新录制。
+`verify-endpoints.mjs` 用 `tests/host-harness.mjs` 按 Loader 的方式挂载真正的插件（只顶替 tool registry 与 system prompt），脚本化传输层，覆盖 23 字节关键词前缀、最新分时行把当日累计成交额重述到前一行之下、别处出现递减时整次调用失败，以及按 host 的退避：某个 host 连败两次后只停它自己，其余 host 照常可用。
+
+## 升级说明
+
+本版本去掉了浏览器半边与工具 `stock_watchlist`：自选股、自选股上标的持仓、指数行与侧栏面板都不再存在。旧版本写到 `$DSH_HOME/storages/stock.json` 的清单不再被读取，可以自行删除；插件本身也不再申请 storage domain，因此不带 storage 的组合也能挂载它。
 
 ## 限制
 
-接口没有稳定性承诺，所以值是上游最后一次返回的快照，可能延迟、过期或自相矛盾。最新分时行在上游结算当日时可能重述累计成交额，序列按原样返回。搜索只做前缀匹配且只取 23 字节，精确的长名称可能搜不到。覆盖不完整：搜索跳过北交所（它只接受现行 920 股票码与 899 指数码），分时序列描述的是上游最近一个交易日而不是今天，分钟线只有沪深，多日序列覆盖五个交易日且无法指定日期，财务与榜单只有内地上市，榜单只有三种排序键两个板块。`stock_news` 不能翻页、除链接外没有正文、用北京时间。`stock_macro` 按期发布方自己的标签给出期间，并按量级报告货币供应字段——报告里把 M2 叫作 `BASIC_CURRENCY`。一行的分时线与 `stock_minute` 报告的是同一个交易日。持仓的市值与盈亏按该证券自身货币的最新行情推算，不换算、不计费用。面板的开/收盘指示只看星期与交易时段，不建模交易所节假日。行情不构成投资建议。
+接口没有稳定性承诺，所以值是上游最后一次返回的快照，可能延迟、过期或自相矛盾。最新分时行在上游结算当日时可能重述累计成交额，序列按原样返回。搜索只做前缀匹配且只取 23 字节，精确的长名称可能搜不到。覆盖不完整：搜索跳过北交所（它只接受现行 920 股票码与 899 指数码），分时序列描述的是上游最近一个交易日而不是今天，分钟线只有沪深，多日序列覆盖五个交易日且无法指定日期，财务与榜单只有内地上市，榜单只有三种排序键两个板块。`stock_news` 不能翻页、除链接外没有正文、用北京时间。`stock_macro` 按期发布方自己的标签给出期间，并按量级报告货币供应字段——报告里把 M2 叫作 `BASIC_CURRENCY`。行情不构成投资建议。

@@ -1,13 +1,11 @@
 /**
- * stock — market queries exposed as thirteen Host tools, plus the durable
- * watchlist the user manages from a panel.
+ * stock — market queries exposed as twelve Host tools, and nothing else.
  *
  * `stock_search`, `stock_quote`, `stock_kline`, `stock_minute`, `stock_bars`,
  * `stock_minute_history`, `stock_moneyflow`, `stock_fundamentals`,
  * `stock_market`, `stock_rank`, `stock_news`, and `stock_macro` each issue one
  * GET against a whitelisted public endpoint, coerce the response through strict
- * field checks, and return a bounded JSON value. `stock_watchlist` reads and
- * edits the one list this package stores. An expected request failure
+ * field checks, and return a bounded JSON value. An expected request failure
  * (transport, timeout, an unexpected status, or a response that violates the
  * endpoint contract) comes back as an `ok: false` payload carrying a closed
  * `error.code`, so the model reads the failure and its retry time instead of
@@ -22,18 +20,12 @@
  * lives in this process only and disappears when the process exits. It writes
  * no session data beyond the ordinary tool call and result the registry logs.
  *
- * `stock_watchlist` adds the one thing this plugin stores: an ordered list of
- * followed securities, kept by {@link module:dsh-stock/src/watchlist} and
- * managed from the sidebar panel {@link module:dsh-stock/src/bridge} serves.
- * Market data is never stored — a quote is read when a surface asks for one and
- * discarded with the answer.
+ * The bundle has no browser half and keeps nothing on disk: a quote is read when
+ * the model asks for one and discarded with the answer. Lists the user wants to
+ * follow belong to the conversation that names them, not to this plugin.
  *
  * @module dsh-stock
  */
-
-import { buildWatchlistApi, registerBridge } from './src/bridge.js'
-import { MIN_POINTS } from './src/sparkline.js'
-import { openWatchlist } from './src/watchlist.js'
 
 /**
  * Cordis plugin name used by loader diagnostics.
@@ -41,17 +33,14 @@ import { openWatchlist } from './src/watchlist.js'
 export const name = 'stock'
 
 /**
- * The services this plugin contributes to and cannot run without. The
- * watchlist is durable host state, so the storage domain is a hard dependency:
- * a composition without it cannot mount this plugin instead of mounting a
- * watchlist that silently forgets everything.
+ * The services this plugin contributes to and cannot run without.
  *
- * `systemPrompt` is a hard dependency for the same reason. The caveats that
- * qualify every value these endpoints return are one prompt section, so a
- * composition that mounted the tools without that service would hand the model
- * market data and no statement of what it does not promise.
+ * `systemPrompt` is a hard dependency: the caveats that qualify every value
+ * these endpoints return are one prompt section, so a composition that mounted
+ * the tools without that service would hand the model market data and no
+ * statement of what it does not promise.
  */
-export const inject = ['tools', 'storageDomain', 'systemPrompt']
+export const inject = ['tools', 'systemPrompt']
 
 // ── protocol constants (fixed: they describe the remote API, not a tunable) ──
 
@@ -386,16 +375,6 @@ const FILTERED_MATCH_NOTE = 'Matches exist upstream but none is in a market or s
 /** Reported when a daily-bar request came back without bars. */
 const EMPTY_BARS_NOTE = 'Upstream returned no daily bars for this code; the endpoint cannot distinguish a code that does not exist, a security with no history, and a market it does not cover.'
 
-/** The ordered lists this plugin stores, as the tool and the panel address them. */
-const WATCHLIST_SCOPES = ['watchlist', 'index']
-
-/**
- * The mainland indexes a document that has never held an index row starts with:
- * the Shanghai composite, the Shenzhen component, ChiNext, STAR 50, and the CSI
- * 300. From then on the row is the user's, arranged from the panel or the tool.
- */
-const DEFAULT_INDEX_CODES = ['sh000001', 'sz399001', 'sz399006', 'sh000688', 'sh000300']
-
 // ── configuration ───────────────────────────────────────────────────────────
 
 /**
@@ -430,18 +409,9 @@ const DEFAULT_CONFIG = {
   rankMaxCount: 50,
   rankMaxOffset: 5_000,
   toolTimeoutMs: 60_000,
-  watchlistMaxEntries: 50,
-  indexMaxEntries: 10,
-  panelRefreshMs: 10_000,
-  sparklinePoints: 60,
-  sparklineRefreshMs: 120_000,
-  sparklineMaxFetches: 4,
 }
 
 const CONFIG_KEYS = new Set(Object.keys(DEFAULT_CONFIG))
-
-/** Config fields for which zero is a value: each switches one behavior off. */
-const NON_NEGATIVE_CONFIG_KEYS = new Set(['panelRefreshMs', 'sparklineMaxFetches'])
 
 /**
  * Read one positive-integer config field, falling back to its default.
@@ -460,30 +430,11 @@ function configInteger(config, key) {
 }
 
 /**
- * Read one non-negative-integer config field, falling back to its default.
- *
- * Some fields switch a behavior off at zero, so zero is a value rather than a
- * missing one.
- *
- * @param config - the row's raw `config` object.
- * @param key - field name, also used in the failure message.
- * @returns the configured value, or the default when the field is absent.
- */
-function configNonNegativeInteger(config, key) {
-  const value = config[key]
-  if (value === undefined) return DEFAULT_CONFIG[key]
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
-    throw new Error(`stock: config.${key} must be a non-negative integer`)
-  }
-  return value
-}
-
-/**
  * Resolve and validate the row's `config` into the complete option set.
  *
  * Fails loud at load on an unknown key, a non-positive integer, an empty
- * `userAgent`, a default bar count above its cap, or a sparkline shorter than a
- * line: each would otherwise surface later as a confusing runtime failure.
+ * `userAgent`, or a default bar count above its cap: each would otherwise
+ * surface later as a confusing runtime failure.
  *
  * @param raw - the `config` value the Loader passed to `apply`, if any.
  * @returns every option resolved to a concrete value.
@@ -499,7 +450,7 @@ function resolveConfig(raw) {
   const resolved = {}
   for (const key of Object.keys(DEFAULT_CONFIG)) {
     if (key === 'userAgent') continue
-    resolved[key] = NON_NEGATIVE_CONFIG_KEYS.has(key) ? configNonNegativeInteger(config, key) : configInteger(config, key)
+    resolved[key] = configInteger(config, key)
   }
   const userAgent = config.userAgent ?? DEFAULT_CONFIG.userAgent
   if (typeof userAgent !== 'string' || userAgent.trim().length === 0) {
@@ -520,9 +471,6 @@ function resolveConfig(raw) {
   }
   if (resolved.macroMaxPeriods > MACRO_MAX_PERIODS) {
     throw new Error(`stock: config.macroMaxPeriods must not exceed ${MACRO_MAX_PERIODS}`)
-  }
-  if (resolved.sparklinePoints < MIN_POINTS) {
-    throw new Error(`stock: config.sparklinePoints must be at least ${MIN_POINTS}, because a series of one point has no line to draw`)
   }
   return resolved
 }
@@ -709,101 +657,6 @@ function isoSeconds(epochSeconds) {
     throw invalidResponse('A quote timestamp is outside the representable range.')
   }
   return `${date.toISOString().slice(0, 19)}Z`
-}
-
-// ── trading sessions ────────────────────────────────────────────────────────
-
-/** The mainland's continuous-trading windows, as minutes past local midnight. */
-const MAINLAND_WINDOWS = [{ from: 570, to: 690 }, { from: 780, to: 900 }]
-
-/**
- * Regular trading windows per market, in that market's own zone: the two
- * mainland sessions, Hong Kong's two, and the United States' single one.
- *
- * Exchange holidays are not modelled, so a holiday reads as open: the panel
- * then polls a quote that does not change until the next close. Deriving the
- * holiday calendar is deliberately out of scope — a stale poll is cheap, and a
- * wrong "closed" would hide a live market.
- */
-const MARKET_WINDOWS = {
-  sh: MAINLAND_WINDOWS,
-  sz: MAINLAND_WINDOWS,
-  bj: MAINLAND_WINDOWS,
-  hk: [{ from: 570, to: 720 }, { from: 780, to: 960 }],
-  us: [{ from: 570, to: 960 }],
-}
-
-/**
- * The next instant one market enters a regular trading window, in epoch
- * milliseconds.
- *
- * The search walks the next calendar week, skipping weekends, and resolves each
- * wall-clock window start through the zone's offset twice so a daylight-saving
- * transition between now and then still lands on the intended local time. It
- * returns null only when the market has no window at all.
- *
- * @param timeZone - the market's IANA zone.
- * @param windows - that market's windows, in minutes past local midnight.
- * @param epochMs - the instant to search from.
- * @returns the next window start, or null when there is none within a week.
- */
-function nextMarketOpen(timeZone, windows, epochMs) {
-  const wall = wallClockAt(timeZone, epochMs)
-  const dayStart = Date.UTC(wall.year, wall.month - 1, wall.day)
-  const minutesNow = wall.hour * 60 + wall.minute + wall.second / 60
-  for (let offset = 0; offset <= 7; offset += 1) {
-    const day = new Date(dayStart + offset * 86_400_000)
-    const weekday = day.getUTCDay()
-    if (weekday === 0 || weekday === 6) continue
-    for (const window of windows) {
-      // A window already open is not the *next* one; the caller only asks after
-      // it judged the market closed, which includes the lunch break.
-      if (offset === 0 && window.from <= minutesNow) continue
-      const wallMs = day.getTime() + window.from * 60_000
-      const first = wallMs - zoneOffsetMs(timeZone, wallMs)
-      const second = wallMs - zoneOffsetMs(timeZone, first)
-      return Math.max(second, epochMs + 1)
-    }
-  }
-  return null
-}
-
-/**
- * Report which of the named markets are inside a regular trading window now,
- * and when the next one opens when none is.
- *
- * A schedule-driven surface uses this to stop polling a closed market rather
- * than to state what the market is doing: nothing here knows about holidays or
- * about a session that closed early.
- *
- * @param markets - the markets the caller cares about; duplicates are ignored.
- * @param epochMs - the instant to judge, in epoch milliseconds.
- * @returns whether any of them is trading, which ones, and the earliest next
- *   open when none is, as an RFC 3339 instant.
- */
-function marketSession(markets, epochMs = Date.now()) {
-  const trading = []
-  let nextOpen = null
-  for (const market of new Set(markets)) {
-    const zone = MARKET_TIMEZONE[market]
-    const windows = MARKET_WINDOWS[market]
-    if (zone === undefined || windows === undefined) continue
-    const wall = wallClockAt(zone, epochMs)
-    const weekday = new Date(Date.UTC(wall.year, wall.month - 1, wall.day)).getUTCDay()
-    const minutes = wall.hour * 60 + wall.minute
-    if (weekday >= 1 && weekday <= 5 && windows.some(window => minutes >= window.from && minutes < window.to)) {
-      trading.push(market)
-      continue
-    }
-    const candidate = nextMarketOpen(zone, windows, epochMs)
-    if (candidate !== null && (nextOpen === null || candidate < nextOpen)) nextOpen = candidate
-  }
-  trading.sort()
-  return {
-    open: trading.length > 0,
-    trading,
-    next_open_at: trading.length > 0 || nextOpen === null ? null : new Date(nextOpen).toISOString(),
-  }
 }
 
 // ── value coercion ──────────────────────────────────────────────────────────
@@ -3179,125 +3032,6 @@ const QUOTE_SUCCESS_SCHEMA = {
   additionalProperties: false,
 }
 
-/** A holding the user marked on one followed security. */
-const WATCHLIST_POSITION_SCHEMA = {
-  type: 'object',
-  required: ['cost', 'quantity', 'markedAt'],
-  properties: {
-    cost: NULLABLE_NUMBER,
-    quantity: NULLABLE_NUMBER,
-    markedAt: { type: 'string' },
-  },
-  additionalProperties: false,
-}
-
-/**
- * One holding with the figures the panel draws, computed from the stored mark
- * and the latest quote.
- *
- * The panel already derives value and profit; a model that has to redo the
- * arithmetic from `cost` and `quantity` will eventually disagree with what the
- * person sees on screen, so the same derivation is done here once and published.
- * A figure whose input is missing stays null rather than being guessed.
- */
-const HOLDING_SCHEMA = {
-  type: 'object',
-  required: ['code', 'currency', 'cost', 'quantity', 'price', 'market_value', 'profit', 'profit_pct', 'marked_at'],
-  properties: {
-    code: { type: 'string' },
-    currency: NULLABLE_STRING,
-    cost: NULLABLE_NUMBER,
-    quantity: NULLABLE_NUMBER,
-    price: NULLABLE_NUMBER,
-    market_value: NULLABLE_NUMBER,
-    profit: NULLABLE_NUMBER,
-    profit_pct: NULLABLE_NUMBER,
-    marked_at: { type: 'string' },
-  },
-  additionalProperties: false,
-}
-
-/** One followed security, as the watchlist stores it. */
-const WATCHLIST_ENTRY_SCHEMA = {
-  type: 'object',
-  required: ['code', 'name', 'addedAt', 'position'],
-  properties: {
-    code: { type: 'string' },
-    name: NULLABLE_STRING,
-    addedAt: { type: 'string' },
-    position: { oneOf: [WATCHLIST_POSITION_SCHEMA, { type: 'null' }] },
-  },
-  additionalProperties: false,
-}
-
-/** One batch of the watchlist whose quotes could not be read. */
-const WATCHLIST_FAILED_SCHEMA = {
-  type: 'object',
-  required: ['codes', 'error'],
-  properties: {
-    codes: { type: 'array', items: { type: 'string' } },
-    error: {
-      type: 'object',
-      required: ['code', 'message', 'retryable'],
-      properties: {
-        code: { type: 'string' },
-        message: { type: 'string' },
-        retryable: { type: 'boolean' },
-        retry_at: { type: 'string' },
-      },
-      additionalProperties: false,
-    },
-  },
-  additionalProperties: false,
-}
-
-/** The markets the watchlist covers and when the next one opens. */
-const WATCHLIST_MARKET_SCHEMA = {
-  type: 'object',
-  required: ['open', 'trading', 'next_open_at'],
-  properties: {
-    open: { type: 'boolean' },
-    trading: { type: 'array', items: { type: 'string', enum: MARKETS } },
-    next_open_at: NULLABLE_STRING,
-  },
-  additionalProperties: false,
-}
-
-/** One of the stored lists, with the latest quote of every entry. */
-const WATCHLIST_SUCCESS_SCHEMA = {
-  type: 'object',
-  required: [
-    'ok', 'source', 'query', 'action', 'scope', 'entries', 'invalid',
-    'holdings', 'items', 'missing', 'market', 'updated_at', 'snapshot',
-  ],
-  properties: {
-    ok: { type: 'boolean', const: true },
-    source: { type: 'string', const: 'stock' },
-    query: { type: 'string', const: 'watchlist' },
-    action: { type: 'string', enum: ['list', 'add', 'remove', 'move', 'clear', 'mark', 'unmark'] },
-    scope: { type: 'string', enum: WATCHLIST_SCOPES },
-    entries: { type: 'array', items: WATCHLIST_ENTRY_SCHEMA },
-    invalid: { type: 'array', items: { type: 'string' } },
-    holdings: { type: 'array', items: HOLDING_SCHEMA, description: 'The marked positions of this list, with value and profit derived the same way the panel derives them.' },
-    items: { type: 'array', items: QUOTE_ITEM_SCHEMA },
-    missing: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['code', 'reason'],
-        properties: { code: { type: 'string' }, reason: { type: 'string', const: 'not_found' } },
-        additionalProperties: false,
-      },
-    },
-    failed: { type: 'array', items: WATCHLIST_FAILED_SCHEMA },
-    market: WATCHLIST_MARKET_SCHEMA,
-    updated_at: NULLABLE_STRING,
-    note: { type: 'string' },
-    snapshot: SNAPSHOT_SCHEMA,
-  },
-  additionalProperties: false,
-}
-
 /** A daily-bar series. */
 const KLINE_SUCCESS_SCHEMA = {
   type: 'object',
@@ -3866,8 +3600,6 @@ const MACRO_OUTPUT = {
   ],
 }
 
-/** Output contract of the watchlist tool. */
-const WATCHLIST_OUTPUT = { oneOf: [WATCHLIST_SUCCESS_SCHEMA, ERROR_PAYLOAD_SCHEMA] }
 
 // ── tool arguments ──────────────────────────────────────────────────────────
 
@@ -4019,343 +3751,11 @@ function presentableArgs(args, key) {
   return undefined
 }
 
-// ── watchlist arguments and results ─────────────────────────────────────────
-
-/** The actions the watchlist tool accepts, as its schema enumerates them. */
-const WATCHLIST_ACTIONS = ['list', 'add', 'remove', 'move', 'clear', 'mark', 'unmark']
-
-/**
- * Read the list a watchlist call addresses.
- *
- * @param args - the raw tool arguments.
- * @returns the scope, defaulting to the followed securities.
- * @throws {UsageError} when the argument is not a scope this plugin stores.
- */
-function readWatchlistScope(args) {
-  return readEnum(args, 'scope', 'watchlist', WATCHLIST_SCOPES)
-}
-
-/**
- * Read and canonicalize the codes of an add or remove call.
- *
- * The list is deduplicated after normalization, so one call naming the same
- * security twice appends it once.
- *
- * @param args - the raw tool arguments.
- * @param maxEntries - how many codes this call's scope accepts.
- * @returns the canonical codes, in the order given.
- * @throws {UsageError} when the argument is missing, empty, or not codes.
- */
-function readWatchlistCodes(args, maxEntries) {
-  const raw = readArg(args, 'codes')
-  if (!Array.isArray(raw) || raw.length === 0) {
-    throw new UsageError('codes must be a non-empty array of code strings.')
-  }
-  if (raw.length > maxEntries) {
-    throw new UsageError(`codes must hold at most ${maxEntries} codes.`)
-  }
-  const canonical = []
-  for (const value of raw) {
-    const code = parseCode(value).code
-    if (!canonical.includes(code)) canonical.push(code)
-  }
-  return canonical
-}
-
-/**
- * Read the position a move call targets.
- *
- * Whether the position fits depends on the list at the moment the move runs, so
- * only the form is checked here; the store reports a target past the end.
- *
- * @param args - the raw tool arguments.
- * @returns the 1-based position.
- * @throws {UsageError} when the argument is not a positive whole number.
- */
-function readPosition(args) {
-  const raw = readArg(args, 'to')
-  if (typeof raw !== 'number' || !Number.isInteger(raw) || raw < 1) {
-    throw new UsageError('to must be a whole number of 1 or more.')
-  }
-  return raw
-}
-
-/**
- * Read the code a mark or unmark call addresses.
- *
- * @param args - the raw tool arguments.
- * @param action - the action, used in the failure message.
- * @returns the canonical code.
- * @throws {UsageError} when the argument is missing or not a code this plugin serves.
- */
-function readWatchlistCode(args, action) {
-  const code = readArg(args, 'code')
-  if (typeof code !== 'string' || code.trim() === '') {
-    throw new UsageError(`code is required when action is ${action}.`)
-  }
-  return parseCode(code).code
-}
-
-/**
- * Read one optional positive position figure.
- *
- * An absent field keeps whatever the stored position holds, which is how a
- * mark that only updates the quantity leaves the cost alone.
- *
- * @param args - the raw tool arguments.
- * @param key - `cost` or `quantity`.
- * @returns the accepted figure, or undefined when absent.
- * @throws {UsageError} when the argument is not a positive finite number.
- */
-function readPositionFigure(args, key) {
-  const raw = readArg(args, key)
-  if (raw === undefined) return undefined
-  if (typeof raw !== 'number' || !Number.isFinite(raw) || raw <= 0) {
-    throw new UsageError(`${key} must be a positive number.`)
-  }
-  return raw
-}
-
-/**
- * Build the model-facing watchlist value for one scope.
- *
- * The Host reads both lists in one pass, so the quotes, the failed batches, and
- * the market session are narrowed here to the codes of the list this call named.
- *
- * @param action - the action that produced it.
- * @param scope - the list the call addressed.
- * @param state - the state both surfaces read.
- * @param notes - what this action did, beyond the list itself.
- * @returns the tool value.
- */
-function watchlistPayload(action, scope, state, notes = []) {
-  const listed = scope === 'index' ? state.indices : state.entries
-  const codes = new Set(listed.map(entry => entry.code))
-  const markets = new Set(listed.map(entry => entry.code.slice(0, 2)))
-  // The Host read both lists in one pass, so its market session covers the
-  // other list too. Judge this list's own markets at the same instant, or a
-  // watchlist of US codes would inherit a mainland opening time from the index
-  // row that this call did not address.
-  const at = Date.parse(state.snapshot?.queried_at ?? '')
-  const market = marketSession([...markets], Number.isFinite(at) ? at : Date.now())
-  const failed = state.quotes.failed
-    .map(batch => ({ ...batch, codes: batch.codes.filter(code => codes.has(code)) }))
-    .filter(batch => batch.codes.length > 0)
-  const holdings = holdingView(listed, codes, state.quotes.items)
-  const payload = {
-    ok: true,
-    source: 'stock',
-    query: 'watchlist',
-    action,
-    scope,
-    entries: listed,
-    invalid: state.invalid.filter(code => codes.has(code)),
-    holdings,
-    items: state.quotes.items.filter(item => codes.has(item.code)),
-    missing: state.quotes.missing.filter(entry => codes.has(entry.code)),
-    market,
-    updated_at: state.panel.updatedAt,
-    snapshot: state.snapshot,
-  }
-  const all = [...notes]
-  if (failed.length > 0) {
-    payload.failed = failed
-    const unread = failed.flatMap(entry => entry.codes)
-    all.push(`No quote could be read for ${unread.join(', ')} (${failed[0].error.code}); the stored entries are unaffected.`)
-  }
-  if (listed.length === 0) all.push(scope === 'index' ? 'The index row is empty.' : 'The watchlist is empty.')
-  if (payload.invalid.length > 0) {
-    all.push(`The stored list holds ${payload.invalid.join(', ')}, which this plugin cannot query; remove them.`)
-  }
-  if (scope === 'watchlist' && holdings.length === 0 && listed.length > 0) {
-    all.push('No entry is marked as held; `stock_watchlist` with action `mark` records a cost and a share count.')
-  } else if (holdings.length > 0) {
-    const unpriced = holdings.filter(holding => holding.price === null).map(holding => holding.code)
-    if (unpriced.length > 0) all.push(`No quote was available for the holding in ${unpriced.join(', ')}, so its value and profit are null rather than zero.`)
-  }
-  if (all.length > 0) payload.note = all.join(' ')
-  return payload
-}
-
-/**
- * Round to a fixed number of decimal places.
- *
- * @param value - the figure.
- * @param places - how many decimals to keep.
- * @returns the rounded figure.
- */
-function roundTo(value, places) {
-  const factor = 10 ** places
-  return Math.round(value * factor) / factor
-}
-
-/**
- * Derive the panel's holding figures for the marked entries of one list.
- *
- * The arithmetic mirrors the panel exactly — value is price times quantity and
- * profit is price minus cost times quantity, in the security's own currency —
- * so a model quoting a figure agrees with what the person sees. A missing input
- * leaves its figure null; a cost of zero is treated as unknown, because a
- * percentage return against it is meaningless.
- *
- * @param listed - the entries of the addressed list.
- * @param codes - the codes of that list, already filtered.
- * @param quotes - the quote items the Host read in one pass.
- * @returns the holdings, in the list's own order.
- */
-function holdingView(listed, codes, quotes) {
-  const byCode = new Map(quotes.filter(item => codes.has(item.code)).map(item => [item.code, item]))
-  const holdings = []
-  for (const entry of listed) {
-    const position = entry.position
-    if (position === undefined || position === null) continue
-    const quote = byCode.get(entry.code)
-    const price = typeof quote?.price === 'number' && Number.isFinite(quote.price) ? quote.price : null
-    const cost = position.cost
-    const quantity = position.quantity
-    // Rounded where the panel rounds, so the figure a model quotes and the
-    // figure on screen are the same number rather than two floats that differ
-    // in the last place.
-    const marketValue = price !== null && quantity !== null ? roundTo(price * quantity, 2) : null
-    const profit = price !== null && cost !== null && cost > 0 && quantity !== null ? roundTo((price - cost) * quantity, 2) : null
-    const profitPct = price !== null && cost !== null && cost > 0 ? roundTo((price / cost - 1) * 100, 2) : null
-    holdings.push({
-      code: entry.code,
-      currency: typeof quote?.currency === 'string' ? quote.currency : null,
-      cost,
-      quantity,
-      price,
-      market_value: marketValue,
-      profit,
-      profit_pct: profitPct,
-      marked_at: position.markedAt,
-    })
-  }
-  return holdings
-}
-
-/**
- * Run one watchlist action for the agent.
- *
- * @param watchlist - the watchlist surface the panel also uses.
- * @param config - the resolved plugin options.
- * @param args - the raw tool arguments.
- * @param signal - caller cancellation, forwarded to the quote reads.
- * @returns the model-facing value.
- * @throws {UsageError} on unusable arguments; every state-dependent outcome is a value.
- */
-async function runWatchlist(watchlist, config, args, signal) {
-  const action = readEnum(args, 'action', 'list', WATCHLIST_ACTIONS)
-  const scope = readWatchlistScope(args)
-  const maxEntries = scope === 'index' ? config.indexMaxEntries : config.watchlistMaxEntries
-  const label = scope === 'index' ? 'index row' : 'watchlist'
-  switch (action) {
-    case 'list': {
-      // Only a read explains the shape of what it returns: a mutation already
-      // says what it changed, and repeating the caveat on every write buries it.
-      const state = await watchlist.status(signal)
-      return watchlistPayload(action, scope, state, scope === 'index'
-        ? ['The index row is a market gauge; positions are marked on the watchlist only.']
-        : [],
-      )
-    }
-    case 'add': {
-      const { outcome, state } = await watchlist.add(scope, readWatchlistCodes(args, maxEntries), signal)
-      const notes = []
-      if (outcome.duplicates.length > 0) notes.push(`Already in the ${label}: ${outcome.duplicates.join(', ')}.`)
-      if (outcome.full.length > 0) {
-        notes.push(`The ${label} holds its maximum of ${maxEntries} entries; not added: ${outcome.full.join(', ')}.`)
-      }
-      return watchlistPayload(action, scope, state, notes)
-    }
-    case 'remove': {
-      const { outcome, state } = await watchlist.remove(scope, readWatchlistCodes(args, maxEntries), signal)
-      const notes = outcome.absent.length > 0 ? [`Not in the ${label}: ${outcome.absent.join(', ')}.`] : []
-      return watchlistPayload(action, scope, state, notes)
-    }
-    case 'move': {
-      const code = readWatchlistCode(args, 'move')
-      const { outcome, state } = await watchlist.move(scope, code, readPosition(args), signal)
-      const notes = []
-      if (outcome.reason === 'not_listed') notes.push(`The ${label} does not hold that code.`)
-      else if (outcome.reason === 'out_of_range') notes.push(`The ${label} holds ${outcome.count} entries, so to must be between 1 and ${outcome.count}.`)
-      else if (outcome.reason === 'unchanged') notes.push('It already occupies that position.')
-      return watchlistPayload(action, scope, state, notes)
-    }
-    case 'mark': {
-      if (scope !== 'watchlist') {
-        throw new UsageError('Positions are marked on the watchlist; the index row holds no positions.')
-      }
-      const code = readWatchlistCode(args, 'mark')
-      const fields = {}
-      const cost = readPositionFigure(args, 'cost')
-      const quantity = readPositionFigure(args, 'quantity')
-      if (cost !== undefined) fields.cost = cost
-      if (quantity !== undefined) fields.quantity = quantity
-      const { outcome, state } = await watchlist.mark(scope, code, fields, signal)
-      const notes = outcome.reason === 'not_listed'
-        ? [`The watchlist does not hold ${code}; add it before marking a position.`]
-        : [`Marked ${code} as held${outcome.position.cost === null && outcome.position.quantity === null ? '' : ' with the figures stored'}.`]
-      return watchlistPayload(action, scope, state, notes)
-    }
-    case 'unmark': {
-      if (scope !== 'watchlist') {
-        throw new UsageError('Positions are marked on the watchlist; the index row holds no positions.')
-      }
-      const code = readWatchlistCode(args, 'unmark')
-      const { outcome, state } = await watchlist.unmark(scope, code)
-      const notes = []
-      if (outcome.reason === 'not_listed') notes.push(`The watchlist does not hold ${code}.`)
-      else if (outcome.reason === 'not_marked') notes.push(`${code} is not marked as held.`)
-      return watchlistPayload(action, scope, state, notes)
-    }
-    case 'clear': {
-      if (readArg(args, 'confirm') !== true) {
-        throw new UsageError(`clear deletes every ${label} entry; pass confirm: true to run it.`)
-      }
-      const { outcome, state } = await watchlist.clear(scope, signal)
-      return watchlistPayload(action, scope, state, [`Removed ${outcome.removed} ${outcome.removed === 1 ? 'entry' : 'entries'}.`])
-    }
-  }
-}
-
-/**
- * Build the placeholder presentation of a watchlist call. Presentation runs on
- * playback of arbitrary logged arguments, so it never throws and never assumes
- * the action is one the schema enumerates.
- *
- * @param args - the raw tool arguments.
- * @returns the presentation.
- */
-function presentWatchlistCall(args) {
-  const codes = readArg(args, 'codes')
-  const shown = Array.isArray(codes) && codes.every(code => typeof code === 'string')
-    ? { codes }
-    : presentableArgs(args, 'code')
-  const list = readArg(args, 'scope') === 'index' ? 'the stock index row' : 'the stock watchlist'
-  switch (readArg(args, 'action')) {
-    case 'add':
-      return present(`Add to ${list}`, 'edit', shown)
-    case 'remove':
-      return present(`Remove from ${list}`, 'delete', shown)
-    case 'move':
-      return present(`Reorder ${list}`, 'move', shown)
-    case 'mark':
-      return present(`Mark a position on ${list}`, 'edit', shown)
-    case 'unmark':
-      return present(`Clear a position on ${list}`, 'delete', shown)
-    case 'clear':
-      return present(`Clear ${list}`, 'delete')
-    default:
-      return present(`Read ${list}`, 'read')
-  }
-}
-
 // ── tools ───────────────────────────────────────────────────────────────────
 
 /**
  * The caveats that hold for every stock tool, registered once as a prompt
- * section rather than appended to each of the thirteen descriptions. Each fact
+ * section rather than appended to each of the twelve descriptions. Each fact
  * is then stated once, and no description carries a fact that belongs to
  * another tool — the search coverage gap, the daily-bar adjustment rule.
  *
@@ -4364,7 +3764,7 @@ function presentWatchlistCall(args) {
  */
 const CAVEATS =
   'Market data from the stock_* tools: the quote endpoints carry no stability guarantee, so every value is a snapshot upstream last returned and may be delayed, stale, or internally inconsistent. '
-  + 'No market data is stored locally; only the watchlist and the positions marked on it are durable. '
+  + 'No market data is stored locally, so nothing here remembers a code between calls. '
   + 'Complete coverage of securities, history, and trading sessions is not claimed, and quotes are not investment advice.'
 
 /**
@@ -4379,14 +3779,13 @@ function boardOptions(boards) {
 }
 
 /**
- * Build the thirteen tool definitions bound to one client.
+ * Build the twelve tool definitions bound to one client.
  *
  * @param client - the shared process-local client.
  * @param config - the resolved plugin options.
- * @param watchlist - the watchlist surface the last tool reads and manages.
  * @returns the tool definitions, in registration order.
  */
-function buildTools(client, config, watchlist) {
+function buildTools(client, config) {
   return [
     {
       name: 'stock_search',
@@ -4683,63 +4082,15 @@ function buildTools(client, config, watchlist) {
         exec?.signal,
       ),
     },
-    {
-      name: 'stock_watchlist',
-      description: `Read and manage the two ordered lists this plugin stores, both shared with the watchlist panel in the harness UI. scope=watchlist (the default) is the securities the user follows; scope=index is the index row the panel shows above them, which takes index codes only (resolve one with stock_search, where an index comes back as type ZS). A followed security can also be marked as held, with an optional cost per share and quantity; every marked entry comes back in \`holdings\` with its market value and profit, derived the same way the panel derives them, and a figure whose input is missing stays null rather than zero. An entry already in the list, a code with no room left at the configured maximum (${config.watchlistMaxEntries} followed securities, ${config.indexMaxEntries} indexes), a move past the end of the list, and a mark on a code the list does not hold are all reported in note instead of failing the call.`,
-      parameters: parameters({
-        action: {
-          type: 'string',
-          enum: WATCHLIST_ACTIONS,
-          description: 'list (default) reads the addressed list with the latest quote of every entry, exactly as stock_quote reports it; add appends codes; remove drops codes; move repositions one code; mark records a holding on a followed security; unmark clears that holding; clear deletes every entry of that list.',
-        },
-        scope: {
-          type: 'string',
-          enum: WATCHLIST_SCOPES,
-          description: 'Which list the action addresses: watchlist (default) for the followed securities, index for the index row. Both lists are stored, and the other one is left alone. mark and unmark apply to the watchlist only.',
-        },
-        codes: {
-          type: 'array',
-          items: { type: 'string' },
-          description: `The canonical codes add appends or remove drops, 1 to the addressed list's maximum of them (${config.watchlistMaxEntries} for the watchlist, ${config.indexMaxEntries} for the index row), each in the form sh600519, sz399001, bj920001, hk00700, or usAAPL. Resolve a name or keyword with stock_search first: a bare 600519 is not a code.`,
-        },
-        code: {
-          type: 'string',
-          description: 'The canonical code move repositions, or the followed security mark and unmark address.',
-        },
-        to: {
-          type: 'integer',
-          description: 'The 1-based position move puts code at, counted from the start of the list.',
-        },
-        cost: {
-          type: 'number',
-          description: 'mark only: the average cost per share. Omit it to keep the stored cost, or to mark the holding without one.',
-        },
-        quantity: {
-          type: 'number',
-          description: 'mark only: the number of shares held. Omit it to keep the stored quantity, or to mark the holding without one.',
-        },
-        confirm: {
-          type: 'boolean',
-          description: 'clear deletes every entry and runs only when this is true.',
-        },
-      }, []),
-      output: { schema: WATCHLIST_OUTPUT, render: renderValue },
-      timeoutMs: config.toolTimeoutMs,
-      isConcurrencySafe: args => readEnum(args, 'action', 'list', WATCHLIST_ACTIONS) === 'list',
-      presentCall: args => presentWatchlistCall(args),
-      execute: (args, exec) => runWatchlist(watchlist, config, args, exec?.signal),
-    },
   ]
 }
 
 /**
- * Register the thirteen stock tools and the watchlist they manage. Each
- * registration is fiber-scoped, so unloading the plugin removes every tool it
- * added, and the watchlist domain closes with it.
+ * Register the twelve stock tools. Each registration is fiber-scoped, so
+ * unloading the plugin removes every tool it added.
  *
- * @param ctx - the plugin context, which must expose the tool registry, the storage domain, and the system prompt.
+ * @param ctx - the plugin context, which must expose the tool registry and the system prompt.
  * @param config - the row's `config`, validated here.
- * @returns the effect that owns the watchlist domain.
  */
 export function apply(ctx, config) {
   const resolved = resolveConfig(config)
@@ -4752,38 +4103,5 @@ export function apply(ctx, config) {
     order: ctx.systemPrompt.getSectionOrder('MCP_SERVERS') + 20,
     text: CAVEATS,
   })
-  return ctx.effect(async () => {
-    const store = await openWatchlist(ctx.storageDomain, {
-      maxEntries: { watchlist: resolved.watchlistMaxEntries, index: resolved.indexMaxEntries },
-      indexDefaults: DEFAULT_INDEX_CODES,
-    })
-    try {
-      const watchlist = buildWatchlistApi({
-        store,
-        client,
-        config: resolved,
-        parseCode,
-        marketSession,
-        snapshot: () => client._snapshot(),
-        logger: ctx.logger,
-      })
-      for (const tool of buildTools(client, resolved, watchlist)) ctx.tools.register(tool)
-      // Owned by this plugin's fiber: the route appears whenever Connection
-      // mounts, and goes away with the plugin.
-      registerBridge(ctx, watchlist)
-    } catch (error) {
-      // The domain is open by now, and a registration can throw — a hot reload
-      // that disposes this fiber mid-setup does exactly that. Release the
-      // domain before the failure escapes: the facility reserves an open name,
-      // so a leak here fails every later mount with `already-open` until the
-      // process restarts.
-      await store.close()
-      throw error
-    }
-    return async () => {
-      await store.close()
-    }
-  }, 'stock:lifecycle')
+  for (const tool of buildTools(client, resolved)) ctx.tools.register(tool)
 }
-
-

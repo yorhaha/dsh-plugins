@@ -19,7 +19,7 @@
  * `node tests/verify-endpoints.mjs` from the plugin directory after `pnpm install`.
  */
 import { validateJsonSchemaValue } from '@deepseek-ai/dsh-tools'
-import { fakeStorageDomain, mountHost } from './host-harness.mjs'
+import { mountHost } from './host-harness.mjs'
 
 let checks = 0
 const failures = []
@@ -225,8 +225,14 @@ function scriptTransport() {
 // ── mount ───────────────────────────────────────────────────────────────────
 
 const transport = scriptTransport()
-const mount = await mountHost({ facility: fakeStorageDomain(), config: { minIntervalMs: 1, retryDelayMs: 1 } })
+const mount = await mountHost({ config: { minIntervalMs: 1, retryDelayMs: 1 } })
 const tool = (name) => mount.tools.get(name)
+check('the bundle registers its twelve query tools and nothing else',
+  mount.tools.size === 12 && [...mount.tools.keys()].every(key => key.startsWith('stock_')),
+  [...mount.tools.keys()].join(','))
+check('the caveats that qualify every value are one prompt section',
+  mount.sections.length === 1 && mount.sections[0].name === 'stock:caveats',
+  show(mount.sections))
 
 /**
  * Run one tool call and validate its value against the tool's declared output
@@ -381,7 +387,6 @@ check('the host that failed is paused, naming the instant it may be asked again'
 // ── teardown ────────────────────────────────────────────────────────────────
 
 transport.restore()
-await mount.dispose()
 
 console.log(failures.length === 0
   ? `\nALL ${checks} CHECKS PASSED`

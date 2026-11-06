@@ -1,8 +1,8 @@
 # dsh-plugins
 
-一组 DeepSeek Harness 本地插件。每个子目录都是一个可以独立安装的 Cordis bundle：Host 侧注册工具、提示段或本地路由，部分插件还带浏览器半边（插件页、侧栏面板、行情卡）。
+一组 DeepSeek Harness 本地插件。每个子目录都是一个可以独立安装的 Cordis bundle：Host 侧注册工具、提示段或本地路由，部分插件还带浏览器半边（插件页、侧栏面板）。
 
-13 个 bundle，68 个 Host 工具，10 个浏览器半边。数据流只有两类：把本机数据整理成助手可以检索的语料，或者把公开上游的查询变成工具调用。除 `notify` 与 `outlook` 的发信外，插件不向外写入。
+13 个 bundle，67 个 Host 工具，9 个浏览器半边。数据流只有两类：把本机数据整理成助手可以检索的语料，或者把公开上游的查询变成工具调用。除 `notify` 与 `outlook` 的发信外，插件不向外写入。
 
 ## 插件一览
 
@@ -14,7 +14,7 @@
 | [`full-access`](./full-access/) | `dsh-full-access` | 默认完全权限 | — | — | 只覆盖权限行的组合层补丁，没有执行代码 |
 | [`notify`](./notify/) | `dsh-notify` | 通知 | 1 | 插件页 | PushPlus 推送到手机；`provide` 一个 `notify` 服务供其他插件投递 |
 | [`outlook`](./outlook/) | `dsh-outlook` | Outlook 邮件 | 5 | 插件页 | 设备代码登录；邮件抓取到本机 SQLite 后检索；授予 `Mail.Send` 后可以按确认发信 |
-| [`stock`](./stock/) | `dsh-stock` | 股票行情 | 13 | 侧栏 + 行情卡 | 沪深、港股、美股行情与 K 线、资金流、财务、榜单、新闻、宏观；自选股与持仓标记 |
+| [`stock`](./stock/) | `dsh-stock` | 股票行情 | 12 | — | 沪深、港股、美股行情与 K 线、资金流、财务、榜单、新闻、宏观；只提供工具，不落盘 |
 | [`taobao`](./taobao/) | `dsh-taobao` | 网上购物助手 | 4 | — | 淘宝/天猫、京东、拼多多、苏宁、唯品会、抖音、快手七渠道比价 |
 | [`user-todo`](./user-todo/) | `dsh-user-todo` | 日历与待办 | 5 | 侧栏 | 跨会话的个人待办，带月历与到期提醒；面板与工具共享同一份清单，提醒经 `notify` 推送 |
 | [`v2ex`](./v2ex/) | `dsh-v2ex` | V2EX 查询 | 5 | — | 只读查询热门、最新、节点主题、主题详情与回复 |
@@ -40,21 +40,21 @@
 
 安装会把插件目录作为 `link:` 依赖写入 profile 的 `package.json` 并加入 bundle 列表；插件自己的 `cordis.patch.yml` 负责把它的行带入 Loader。卸载用 `plugin_manager` 的 `remove_bundle`（`target` 传包名）或 `dsh plugin --profile <profile> remove <包名>`；插件留下的本机数据不会自动删除。
 
-有运行时依赖的 9 个插件（`bilibili`、`deepxiv`、`notify`、`outlook`、`stock`、`user-todo`、`wechat`、`xiaohongshu`、`zhihu`）各自是独立工程，需要先在各自目录 `pnpm install` 一次。依赖都来自 npm：
+有运行时依赖的 8 个插件（`bilibili`、`deepxiv`、`notify`、`outlook`、`user-todo`、`wechat`、`xiaohongshu`、`zhihu`）各自是独立工程，需要先在各自目录 `pnpm install` 一次。依赖都来自 npm：
 
 | 包 | 版本 | 用在哪 |
 | --- | --- | --- |
 | `@deepseek-ai/dsh-credentials` | `0.2.1-rc.3` | `bilibili`、`deepxiv`、`notify`、`outlook`、`xiaohongshu`、`zhihu` |
-| `@deepseek-ai/dsh-storage-domain` | `0.2.1-rc.3` | `bilibili`、`stock`、`user-todo` |
+| `@deepseek-ai/dsh-storage-domain` | `0.2.1-rc.3` | `bilibili`、`user-todo` |
 | `@deepseek-ai/schemastery` | `~3.18.5` | `outlook`、`wechat` |
 | `@azure/msal-node` | `7.0.1` | `outlook` |
-| `zod` | `4.4.3` | `bilibili`、`stock`、`user-todo` |
+| `zod` | `4.4.3` | `bilibili`、`user-todo` |
 | `@deepseek-ai/dsh-tools` | `0.2.1-rc.2` | 仅测试：除 `file-memory`、`full-access` 外 11 个插件的 devDependency |
 | `@deepseek-ai/dsh-credentials-local` | `0.2.1-rc.3` | 仅测试：`deepxiv`、`notify` |
-| `@deepseek-ai/dsh-client-ui-primitives` | `0.2.1-rc.3` | 仅测试：`stock` 的结果卡 |
-| `react`、`react-dom`、`jsdom` | `^18.2.0` / `18.2.0` / `^29.1.1` | 仅测试：`stock`、`user-todo` 的结果卡与面板检查 |
+| `@deepseek-ai/dsh-client-ui-primitives` | `0.2.1-rc.3` | 浏览器半边的 external：`user-todo` |
+| `react`、`react-dom`、`jsdom` | `^18.2.0` / `18.2.0` / `^29.1.1` | 仅测试：`user-todo` 的面板检查 |
 
-`file-memory`、`full-access`、`taobao`、`v2ex` 没有运行时依赖，但 `taobao`、`v2ex` 的测试要 `@deepseek-ai/dsh-tools`，仍要 `pnpm install` 一次。
+`file-memory`、`full-access`、`stock`、`taobao`、`v2ex` 没有运行时依赖，但 `stock`、`taobao`、`v2ex` 的测试要 `@deepseek-ai/dsh-tools`，仍要 `pnpm install` 一次。
 
 ## 目录约定
 
@@ -71,7 +71,7 @@
 | `shared/` | 跨插件共用代码，见下 |
 | `verify-client-locales.mjs`、`verify-client-datetime.mjs` | 根目录的浏览器半边校验，被各插件的 `npm test` 调用 |
 
-`full-access` 只有 patch、locale 与 icon；`taobao`、`v2ex` 没有 `src/` 和浏览器半边。根目录的 `shared/` 存放共用代码：`schedule.js`（三个定时抓取任务的适配器）、`http.js`（请求串行、最小间隔、退避、响应体上限与失败载荷）、`route.js`（`/api` 路由样板与错误码）。bundle 以 `../../shared/...` 引用它，单独复制一个插件目录出去会丢失这个依赖；`npm test` 同样依赖根目录的 `verify-client-locales.mjs` 与 `verify-client-datetime.mjs`。需要单独分发时把对应文件一并复制过去。
+`full-access` 只有 patch、locale 与 icon；`stock`、`taobao`、`v2ex` 没有 `src/` 和浏览器半边。根目录的 `shared/` 存放共用代码：`schedule.js`（三个定时抓取任务的适配器）、`http.js`（请求串行、最小间隔、退避、响应体上限与失败载荷）、`route.js`（`/api` 路由样板与错误码）。bundle 以 `../../shared/...` 引用它，单独复制一个插件目录出去会丢失这个依赖；`npm test` 同样依赖根目录的 `verify-client-locales.mjs` 与 `verify-client-datetime.mjs`。需要单独分发时把对应文件一并复制过去。
 
 ## 配置
 
@@ -96,7 +96,6 @@
 | --- | --- | --- |
 | `bilibili` | `$DSH_HOME/storages/bilibili/` | 每条记录一个 JSON |
 | `outlook` | `$DSH_HOME/storages/outlook/outlook.db` | SQLite + FTS5 |
-| `stock` | `$DSH_HOME/storages/stock.json` | JSON |
 | `user-todo` | `$DSH_HOME/storages/user_todo.json` | JSON |
 | `wechat` | `$DSH_HOME/wechat/wechat.db`、`$DSH_HOME/wechat/batches/` | SQLite + 原始批次 |
 | `xiaohongshu` | `$DSH_HOME/storages/xiaohongshu/` | SQLite + 下载图片 |
