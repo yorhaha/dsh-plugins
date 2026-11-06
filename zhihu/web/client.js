@@ -62,7 +62,7 @@ window.__ModuleLoader__.load({
       pacingTotal: 'Requests this process',
       pacingLast: 'Last request',
       pacingNote:
-        'Zhihu risk control reacts to rate. The plugin serializes requests, spaces them by the minimum gap, caps them per hour, and answers identical reads from the cache; a 403, captcha page, or 429 pauses the whole process instead of retrying.',
+        'Zhihu risk control reacts to rate. The plugin serializes requests, spaces them by the minimum gap, caps them per hour, and answers identical reads from the cache; an ordinary 403, captcha page, or 429 pauses the whole process instead of retrying, while a zse-ck page is reported as a stale cookie without a long pause.',
       limitsHeading: 'Reading limits',
       limitsContent: 'Content kept per item',
       limitsChars: '{count} characters',
@@ -92,6 +92,7 @@ window.__ModuleLoader__.load({
       'errors.request_budget_exhausted': 'The hourly request budget is used up. Wait for it to reset before reading again.',
       'errors.temporarily_blocked': 'The plugin is in a pause that protects the cookie from risk control.',
       'errors.forbidden': 'Zhihu refused the request with 403, usually risk control or a missing permission.',
+      'errors.cookie_stale': 'Zhihu served its zse-ck verification page. The saved cookie is stale or tied to another browser or network; paste a fresh one.',
       'errors.not_found': 'Zhihu has no such resource; it may be deleted or private.',
       'errors.page_not_recognized': 'Zhihu served a page without the embedded state this plugin reads, so its layout has probably changed.',
       'errors.invalid_response': 'Zhihu answered something unexpected.',
@@ -140,7 +141,7 @@ window.__ModuleLoader__.load({
       pacingTotal: '本进程请求总数',
       pacingLast: '最近请求',
       pacingNote:
-        '知乎风控看频率。插件让请求串行、按最小间隔发送、每小时有上限、相同请求走缓存；遇到 403、验证码页或 429 时整体暂停一段时间，而不是继续重试。',
+        '知乎风控看频率。插件让请求串行、按最小间隔发送、每小时有上限、相同请求走缓存；普通 403、验证码页或 429 会整体暂停一段时间，而 zse-ck 验证页只提示 Cookie 失效，不触发长暂停。',
       limitsHeading: '读取上限',
       limitsContent: '单条内容保留',
       limitsChars: '{count} 个字符',
@@ -170,6 +171,7 @@ window.__ModuleLoader__.load({
       'errors.request_budget_exhausted': '本小时请求额度已用完，请等额度恢复后再读。',
       'errors.temporarily_blocked': '插件正在暂停期，避免继续触发风控。',
       'errors.forbidden': '知乎以 403 拒绝了请求，通常是风控或权限问题。',
+      'errors.cookie_stale': '知乎返回了 zse-ck 验证页，通常是 Cookie 已失效或绑定在其他浏览器/网络；请重新复制并保存新的 Cookie。',
       'errors.not_found': '知乎没有这个资源，可能已删除或设为私密。',
       'errors.page_not_recognized': '知乎页面结构似乎变了，插件读不到页面内嵌的数据。',
       'errors.invalid_response': '知乎返回了预期之外的内容。',

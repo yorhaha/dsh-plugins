@@ -656,7 +656,7 @@ export function buildTools({ client, config, saveCookie, clearCookie }) {
     {
       name: 'zhihu_connect',
       description:
-        'Store a Zhihu web cookie after proving it against the signed-in account. Pass the whole Cookie request header copied from a signed-in zhihu.com page; it must contain z_c0 and d_c0. The cookie is kept in the local credential store and is never returned by any tool. A rejected cookie is returned as ok:false with code cookie_invalid or not_authorized.',
+        'Store a Zhihu web cookie after proving it against the signed-in account. Pass the whole Cookie request header copied from a signed-in zhihu.com page; it must contain z_c0 and d_c0. The cookie is kept in the local credential store and is never returned by any tool. A rejected cookie is returned as ok:false with code cookie_invalid, not_authorized, or cookie_stale.',
       parameters: {
         type: 'object',
         properties: {

@@ -272,26 +272,45 @@ export function createPacer({ label, config, now = Date.now, wallNow = Date.now 
     /**
      * Apply the backoff and minimum-interval pacing. Call inside the
      * serialization chain, so the state it reads cannot change underneath it.
+     *
+     * `bypassPause` is for a request that must prove a replacement credential:
+     * the old credential's pause should not prevent testing a new one. The
+     * minimum interval still applies, and an unexpired pause is left in place
+     * for the next ordinary request.
+     *
+     * @param options - `bypassPause` skips only the backoff check.
      * @returns resolution once this process may issue the request.
      * @throws {RequestFailure} `temporarily_blocked` while a backoff is running.
      */
-    async gate() {
+    async gate({ bypassPause = false } = {}) {
       const current = now()
       if (blockedUntil !== null) {
         if (current < blockedUntil) {
-          throw new RequestFailure(
-            'temporarily_blocked',
-            `${label} requests are temporarily paused in this process. Try again later.`,
-            { retryable: true, retryAt: blockedWall },
-          )
+          if (!bypassPause) {
+            throw new RequestFailure(
+              'temporarily_blocked',
+              `${label} requests are temporarily paused in this process. Try again later.`,
+              { retryable: true, retryAt: blockedWall },
+            )
+          }
+        } else {
+          blockedUntil = null
+          blockedWall = null
         }
-        blockedUntil = null
-        blockedWall = null
       }
       if (lastRequestAt !== null) {
         const wait = lastRequestAt + config.minIntervalMs - current
         if (wait > 0) await sleep(wait)
       }
+    },
+
+    /**
+     * Drop the current backoff, for a replacement credential that has just
+     * proved itself and therefore is not the cause of the old refusal.
+     */
+    clearPause() {
+      blockedUntil = null
+      blockedWall = null
     },
 
     /**

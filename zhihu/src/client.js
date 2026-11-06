@@ -174,11 +174,11 @@ export class ZhihuClient {
 
   /**
    * Read the signed-in account, which also proves the cookie still works.
-   * @param options - optional cookie override (used by the connect flow) and a cache bypass.
+   * @param options - optional cookie override (used by the connect flow), a cache bypass, and whether a pause may be skipped for a replacement cookie.
    * @returns the account and its provenance.
    */
-  async me({ cookie, fresh = false, signal } = {}) {
-    const response = await this.#getJson(`${ORIGIN}/api/v4/me`, { cookie, fresh, signal })
+  async me({ cookie, fresh = false, bypassPause = false, signal } = {}) {
+    const response = await this.#getJson(`${ORIGIN}/api/v4/me`, { cookie, fresh, bypassPause, signal })
     return { account: personFrom(response.json), snapshot: snapshotOf(response) }
   }
 
@@ -464,10 +464,13 @@ export class ZhihuClient {
       if (error instanceof CookieError) throw error
       throw new CookieError(error instanceof Error ? error.message : String(error))
     }
-    const { account } = await this.me({ cookie: normalized, fresh: true, signal })
+    const { account } = await this.me({ cookie: normalized, fresh: true, bypassPause: true, signal })
     if (account.id === '') {
       throw new RequestFailure('invalid_response', 'Zhihu accepted the cookie but returned no account identity.')
     }
+    // The new cookie has just proved itself upstream, so a pause recorded
+    // against the old cookie must not keep the rest of the tools blocked.
+    this.clearPause()
     return account
   }
 
@@ -502,6 +505,18 @@ export class ZhihuClient {
     this.#inflight.clear()
   }
 
+  /**
+   * Drop a process pause that belonged to an old cookie.
+   *
+   * A replacement cookie accepted by `verifyCookie` is fresh evidence that
+   * Zhihu is answering again; keeping the old pause would leave every read
+   * blocked after a successful reconnect.
+   */
+  clearPause() {
+    this.#pausedUntil = null
+    this.#pacer.clearPause()
+  }
+
   /** Content and excerpt bounds, in code points. */
   #bounds() {
     return { contentChars: this.#config.contentChars, excerptChars: this.#config.excerptChars }
@@ -533,6 +548,9 @@ export class ZhihuClient {
    * @returns the failure to throw.
    */
   #pageFailure(kind, text) {
+    if (looksLikeZseChallenge(text)) {
+      return cookieStaleFailure()
+    }
     if (looksLikeVerification(text)) {
       return this.#pause(
         'risk_control',
@@ -573,16 +591,17 @@ export class ZhihuClient {
   /**
    * Read one JSON endpoint.
    * @param url - absolute URL.
-   * @param options - cookie override, cache bypass, and cancellation.
+   * @param options - cookie override, cache bypass, pause bypass, and cancellation.
    * @returns the response with its parsed body.
    * @throws {RequestFailure} `invalid_response` when the body is not JSON.
    */
-  async #getJson(url, { cookie, fresh = false, signal } = {}) {
-    const response = await this.#request(url, { accept: JSON_ACCEPT, cookie, fresh, signal })
+  async #getJson(url, { cookie, fresh = false, bypassPause = false, signal } = {}) {
+    const response = await this.#request(url, { accept: JSON_ACCEPT, cookie, fresh, bypassPause, signal })
     let parsed
     try {
       parsed = parseJsonPreservingIds(response.text)
     } catch {
+      if (looksLikeZseChallenge(response.text)) throw cookieStaleFailure()
       throw new RequestFailure('invalid_response', 'Zhihu answered with something that is not JSON.')
     }
     const error = apiError(parsed)
@@ -599,10 +618,10 @@ export class ZhihuClient {
    * One request through the cache, the in-flight map, and the serialized queue.
    *
    * @param url - absolute URL.
-   * @param options - accept header, cookie override, cache bypass, cancellation.
+   * @param options - accept header, cookie override, cache bypass, pause bypass, cancellation.
    * @returns the response.
    */
-  async #request(url, { accept = JSON_ACCEPT, cookie, fresh = false, signal }) {
+  async #request(url, { accept = JSON_ACCEPT, cookie, fresh = false, bypassPause = false, signal }) {
     const bypass = cookie !== undefined
     // A cookie being tested is not cached and never joins an in-flight request
     // for the stored cookie: the answer must belong to the cookie, not to
@@ -619,7 +638,7 @@ export class ZhihuClient {
     }
 
     const epoch = this.#cacheEpoch
-    const run = this.#enqueue(() => this.#perform(url, accept, cookie, signal))
+    const run = this.#enqueue(() => this.#perform(url, accept, cookie, bypassPause, signal))
       .then((response) => {
         // A cookie change while this request was in flight makes its answer
         // stale by construction; it is returned to its caller but not cached.
@@ -650,16 +669,17 @@ export class ZhihuClient {
    * @param url - absolute URL.
    * @param accept - accept header.
    * @param cookie - cookie override, when validating a new one.
+   * @param bypassPause - whether this request may skip an existing pause.
    * @param signal - caller cancellation.
    * @returns the response.
    */
-  async #perform(url, accept, cookie, signal) {
+  async #perform(url, accept, cookie, bypassPause, signal) {
     if (isCallerAbort(signal)) {
       throw new RequestFailure('aborted', 'The request was cancelled before it was issued.')
     }
     const cookieHeader = await this.#cookieHeader(cookie)
     for (let attempt = 0; ; attempt += 1) {
-      await this.#gate()
+      await this.#gate({ bypassPause })
       this.#pacer.start()
       this.#recordRequest()
       const startedAt = this.#wallNow()
@@ -723,6 +743,9 @@ export class ZhihuClient {
       )
     }
     if (status === 403) {
+      if (looksLikeZseChallenge(text)) {
+        return cookieStaleFailure()
+      }
       const code = jsonErrorCode(text)
       if (code === 10003) {
         return this.#pause(
@@ -771,7 +794,7 @@ export class ZhihuClient {
    * @returns resolution once this process may issue a request.
    * @throws {RequestFailure} `request_budget_exhausted` or `temporarily_blocked`.
    */
-  async #gate() {
+  async #gate({ bypassPause = false } = {}) {
     const now = this.#wallNow()
     this.#pruneBudget(now)
     if (this.#requestTimes.length >= this.#config.hourlyBudget) {
@@ -783,7 +806,7 @@ export class ZhihuClient {
       )
     }
     try {
-      await this.#pacer.gate()
+      await this.#pacer.gate({ bypassPause })
     } catch (error) {
       if (error instanceof RequestFailure && error.retryAt !== null) this.#pausedUntil = error.retryAt
       throw error
@@ -1040,6 +1063,33 @@ function jsonErrorCode(text) {
   } catch {
     return null
   }
+}
+
+/**
+ * Whether a response is Zhihu's `zse-ck` JS challenge page.
+ *
+ * The page carries a `<meta id="zh-zse-ck">` element and a script from the
+ * `zse-ck` path. It is not ordinary risk-control throttling: the flow is
+ * waiting for a browser-generated token, so the stored `__zse_ck` cookie is
+ * stale or belongs to another browser/network. Retrying the same cookie cannot
+ * help, and a long pause only blocks the fresh cookie that would.
+ *
+ * @param text - the response body.
+ * @returns true when the zse-ck challenge is present.
+ */
+function looksLikeZseChallenge(text) {
+  return /zh-zse-ck|zse-ck\/v\d/i.test(text)
+}
+
+/**
+ * The failure for a zse-ck challenge page.
+ * @returns the failure to throw.
+ */
+function cookieStaleFailure() {
+  return new RequestFailure(
+    'cookie_stale',
+    'Zhihu answered with its zse-ck verification page. The stored cookie is stale or tied to another browser or network. Copy a fresh Cookie request header from a signed-in zhihu.com page and connect it again.',
+  )
 }
 
 /**

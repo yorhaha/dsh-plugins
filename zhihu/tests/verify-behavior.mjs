@@ -586,6 +586,48 @@ check('a page without state yields null', readInitialState('<html><body>no state
 }
 
 {
+  const calls = scriptFetch([
+    text('<html><head><meta id="zh-zse-ck" content="challenge"></head></html>', { status: 403 }),
+    json({ data: [], paging: { is_end: true } }),
+  ])
+  const { tools } = mount()
+  const value = await run(tools, 'zhihu_question', { question_id: '19550517' })
+  check('a zse-ck challenge is cookie_stale', value.error.code === 'cookie_stale')
+  check('cookie_stale is not retryable and carries no retry instant', value.error.retryable === false && value.error.retry_at === undefined)
+  const second = await run(tools, 'zhihu_hot')
+  check('a zse-ck challenge does not pause the process', second.ok === true && calls.length === 2, `${calls.length} calls`)
+}
+
+{
+  const calls = scriptFetch([
+    text('<html><head><meta id="zh-zse-ck" content="challenge"></head></html>'),
+    json({ data: [], paging: { is_end: true } }),
+  ])
+  const { tools } = mount()
+  const value = await run(tools, 'zhihu_question', { question_id: '19550517' })
+  check('a 200 zse-ck page is cookie_stale', value.error.code === 'cookie_stale')
+  const second = await run(tools, 'zhihu_hot')
+  check('a 200 zse-ck page does not pause the process', second.ok === true && calls.length === 2, `${calls.length} calls`)
+}
+
+{
+  const calls = scriptFetch([
+    text('<html>系统检测到您的网络环境存在异常，请完成安全验证</html>', { status: 403 }),
+    json(ACCOUNT),
+    json(ACCOUNT),
+  ])
+  const { tools } = mount()
+  const first = await run(tools, 'zhihu_question', { question_id: '19550517' })
+  check('setup: a verification page starts a pause', first.error.code === 'risk_control')
+  const blocked = await run(tools, 'zhihu_hot')
+  check('an ordinary read stays blocked during the pause', blocked.error.code === 'temporarily_blocked' && calls.length === 1)
+  const connected = await run(tools, 'zhihu_connect', { cookie: 'z_c0=new-session; d_c0=new-device' })
+  check('connect bypasses an old pause', connected.ok === true && connected.account.name === 'Example User' && calls.length === 2, `${calls.length} calls`)
+  const after = await run(tools, 'zhihu_me', { fresh: true })
+  check('a successful connect clears the old pause', after.ok === true && calls.length === 3, `${calls.length} calls`)
+}
+
+{
   scriptFetch([text('', { status: 429, headers: { 'retry-after': '2' } })])
   const { tools } = mount()
   const value = await run(tools, 'zhihu_me')
