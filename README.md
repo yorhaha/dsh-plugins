@@ -1,6 +1,6 @@
 # dsh-plugins
 
-一组 DeepSeek Harness 本地插件，包含 14 个独立安装的 Cordis bundle，覆盖信息同步、内容检索、个人待办、通知推送与界面扩展。
+一组 DeepSeek Harness 本地插件，包含 13 个独立安装的 Cordis bundle，覆盖信息同步、内容检索、个人待办、通知推送与界面扩展。
 
 ## 插件一览
 
@@ -9,7 +9,6 @@
 | [`bilibili`](./bilibili/) | `dsh-bilibili` | 哔哩哔哩 | 4 | 插件页 | 同步 B 站观看历史、收藏与动态到本地检索 |
 | [`deepxiv`](./deepxiv/) | `dsh-deepxiv` | DeepXiv | 2 | 插件页 | 检索并精读 arXiv、bioRxiv、medRxiv 与 PMC 论文 |
 | [`file-memory`](./file-memory/) | `dsh-file-memory` | 记忆 | — | 左侧栏 | 使用 Markdown 文件保存与编辑长期记忆 |
-| [`full-access`](./full-access/) | `dsh-full-access` | 默认完全权限 | — | — | 新建会话默认启用「完全权限」预设 |
 | [`magpie-quota`](./magpie-quota/) | `dsh-magpie-quota` | Magpie 额度 | — | 右侧栏 | 在右侧栏显示 Magpie 额度（依赖 `dsh-better-sidebar`） |
 | [`notify`](./notify/) | `dsh-notify` | 通知 | 1 | 插件页 | 通过 PushPlus 推送消息到手机，并提供 `notify` 服务 |
 | [`outlook`](./outlook/) | `dsh-outlook` | Outlook 邮件 | 5 | 插件页 | 同步 Outlook 邮件到本地检索，支持确认发信 |
@@ -120,7 +119,7 @@ node verify-client-datetime.mjs [插件]
 
 ## 注意事项
 
-- **写操作范围**：仅 `notify`（推送消息）、`outlook`（授权 `Mail.Send` 后按确认发信）和 `full-access`（放开文件权限与审批）会对外写入或放宽权限，其余插件均只读上游、只写本机。
+- **写操作范围**：仅 `notify`（推送消息）和 `outlook`（授权 `Mail.Send` 后按确认发信）会对外写入，其余插件均只读上游、只写本机。
 - **定时任务**：`bilibili`、`outlook`、`wechat` 的抓取任务绑定到创建它的会话；在「自动化任务」中删除后需在对应插件页重新创建。
 
 ## 许可证
