@@ -1,7 +1,7 @@
 {
   "name": "dsh-xhs-reader",
   "version": "0.1.0",
-  "description": "Xiaohongshu reading for DeepSeek Harness: a cookie in the local credential store, signed read-only search and note tools, bounded low-frequency requests, and a local image corpus.",
+  "description": "Xiaohongshu plugin for DeepSeek Harness: search and read notes, comments, and user profiles.",
   "private": true,
   "license": "MIT",
   "type": "module",

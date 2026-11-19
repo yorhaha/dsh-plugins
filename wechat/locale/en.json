@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "WeChat",
-    "description": "Import WeChat export batches from this machine into a local searchable corpus, with a status view."
+    "description": "Import and search local WeChat chat exports."
   }
 }

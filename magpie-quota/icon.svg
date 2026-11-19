@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" role="img" aria-label="Magpie allowances">
+  <circle cx="18" cy="18" r="11" fill="none" stroke="#8fa0b5" stroke-width="3.6" opacity="0.4"/>
+  <path d="M18 7a11 11 0 1 1 -11 11" fill="none" stroke="#177f6e" stroke-width="3.6" stroke-linecap="round"/>
+  <circle cx="18" cy="18" r="3.1" fill="#177f6e"/>
+</svg>

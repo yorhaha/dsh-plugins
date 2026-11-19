@@ -1,7 +1,7 @@
 {
   "name": "dsh-bilibili",
   "version": "0.1.0",
-  "description": "Bilibili account data for DeepSeek Harness: captures your own watch history, watch later, favorites, following, and dynamics into a local searchable corpus, with QR sign-in and a recurring sync task.",
+  "description": "Bilibili plugin for DeepSeek Harness: sync your watch history, favorites, and activity locally for search.",
   "private": true,
   "license": "MIT",
   "type": "module",

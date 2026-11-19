@@ -1,7 +1,7 @@
 {
   "name": "dsh-file-memory",
   "version": "0.1.0",
-  "description": "Pure-filesystem memory for DeepSeek Harness: a constant prompt section that tells the model where memory lives and how to search it, plus a browser panel for reading and editing the same Markdown files. No vectors, no index, no database.",
+  "description": "Markdown-based long-term memory plugin for DeepSeek Harness.",
   "private": true,
   "license": "MIT",
   "type": "module",

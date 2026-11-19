@@ -1,129 +1,110 @@
 # dsh-plugins
 
-一组 DeepSeek Harness 本地插件。每个子目录都是一个可以独立安装的 Cordis bundle：Host 侧注册工具、提示段或本地路由，部分插件还带浏览器半边（插件页、侧栏面板）。
-
-13 个 bundle，67 个 Host 工具，9 个浏览器半边。数据流只有两类：把本机数据整理成助手可以检索的语料，或者把公开上游的查询变成工具调用。除 `notify` 与 `outlook` 的发信外，插件不向外写入。
+一组 DeepSeek Harness 本地插件，包含 14 个独立安装的 Cordis bundle，覆盖信息同步、内容检索、个人待办、通知推送与界面扩展。
 
 ## 插件一览
 
-| 目录 | 包名 | 界面名 | 工具 | 界面 | 说明 |
+| 目录 | 包名 | 界面名称 | 工具数 | 界面位置 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| [`bilibili`](./bilibili/) | `dsh-bilibili` | 哔哩哔哩 | 4 | 插件页 | 本人账号的观看历史、稍后再看、收藏、关注、动态；扫码登录与定时抓取 |
-| [`deepxiv`](./deepxiv/) | `dsh-deepxiv` | DeepXiv | 2 | 插件页 | arXiv、bioRxiv、medRxiv、PMC 全文检索与按节精读 |
-| [`file-memory`](./file-memory/) | `dsh-file-memory` | 记忆 | — | 侧栏 | 纯 Markdown 长期记忆；注入提示段，不注册工具 |
-| [`full-access`](./full-access/) | `dsh-full-access` | 默认完全权限 | — | — | 只覆盖权限行的组合层补丁，没有执行代码 |
-| [`notify`](./notify/) | `dsh-notify` | 通知 | 1 | 插件页 | PushPlus 推送到手机；`provide` 一个 `notify` 服务供其他插件投递 |
-| [`outlook`](./outlook/) | `dsh-outlook` | Outlook 邮件 | 5 | 插件页 | 设备代码登录；邮件抓取到本机 SQLite 后检索；授予 `Mail.Send` 后可以按确认发信 |
-| [`stock`](./stock/) | `dsh-stock` | 股票行情 | 12 | — | 沪深、港股、美股行情与 K 线、资金流、财务、榜单、新闻、宏观；只提供工具，不落盘 |
-| [`taobao`](./taobao/) | `dsh-taobao` | 网上购物助手 | 4 | — | 淘宝/天猫、京东、拼多多、苏宁、唯品会、抖音、快手七渠道比价 |
-| [`user-todo`](./user-todo/) | `dsh-user-todo` | 日历与待办 | 5 | 侧栏 | 跨会话的个人待办，带月历与到期提醒；面板与工具共享同一份清单，提醒经 `notify` 推送 |
-| [`v2ex`](./v2ex/) | `dsh-v2ex` | V2EX 查询 | 5 | — | 只读查询热门、最新、节点主题、主题详情与回复 |
-| [`wechat`](./wechat/) | `dsh-wechat` | 微信 | 7 | 插件页 | 导入本机微信导出批次，建立 SQLite 语料后跨会话、跨时间检索 |
-| [`xiaohongshu`](./xiaohongshu/) | `dsh-xhs-reader` | 小红书 | 10 | 插件页 | 本人 cookie 只读访问小红书：搜索、正文与图片、评论、用户主页与本地语料 |
-| [`zhihu`](./zhihu/) | `dsh-zhihu` | 知乎 | 12 | 插件页 | 本人 cookie 只读访问知乎：热榜、问题、回答、文章、用户与评论 |
+| [`bilibili`](./bilibili/) | `dsh-bilibili` | 哔哩哔哩 | 4 | 插件页 | 同步 B 站观看历史、收藏与动态到本地检索 |
+| [`deepxiv`](./deepxiv/) | `dsh-deepxiv` | DeepXiv | 2 | 插件页 | 检索并精读 arXiv、bioRxiv、medRxiv 与 PMC 论文 |
+| [`file-memory`](./file-memory/) | `dsh-file-memory` | 记忆 | — | 左侧栏 | 使用 Markdown 文件保存与编辑长期记忆 |
+| [`full-access`](./full-access/) | `dsh-full-access` | 默认完全权限 | — | — | 新建会话默认启用「完全权限」预设 |
+| [`magpie-quota`](./magpie-quota/) | `dsh-magpie-quota` | Magpie 额度 | — | 右侧栏 | 在右侧栏显示 Magpie 额度（依赖 `dsh-better-sidebar`） |
+| [`notify`](./notify/) | `dsh-notify` | 通知 | 1 | 插件页 | 通过 PushPlus 推送消息到手机，并提供 `notify` 服务 |
+| [`outlook`](./outlook/) | `dsh-outlook` | Outlook 邮件 | 5 | 插件页 | 同步 Outlook 邮件到本地检索，支持确认发信 |
+| [`stock`](./stock/) | `dsh-stock` | 股票行情 | 12 | — | 查询沪深、港股、美股行情、财务、新闻与宏观数据 |
+| [`taobao`](./taobao/) | `dsh-taobao` | 网上购物助手 | 4 | — | 比对淘宝、京东、拼多多等平台商品价格 |
+| [`user-todo`](./user-todo/) | `dsh-user-todo` | 日历与待办 | 5 | 左侧栏 | 跨会话个人待办清单与月历，支持到期推送 |
+| [`v2ex`](./v2ex/) | `dsh-v2ex` | V2EX 查询 | 5 | — | 查询 V2EX 热门、最新、节点主题与回复 |
+| [`wechat`](./wechat/) | `dsh-wechat` | 微信 | 7 | 插件页 | 导入本机微信导出记录至 SQLite 以供检索 |
+| [`xiaohongshu`](./xiaohongshu/) | `dsh-xhs-reader` | 小红书 | 10 | 插件页 | 搜索和阅读小红书笔记、评论与用户主页 |
+| [`zhihu`](./zhihu/) | `dsh-zhihu` | 知乎 | 12 | 插件页 | 浏览知乎热榜、问题、回答、专栏文章与评论 |
 
-「插件页」指左侧栏「插件」中选中该 bundle 后显示的详情页；「侧栏」指从左侧栏直接打开的面板（记忆、自选股、日历与待办）。工具参数、返回值与失败码见各目录的 `README.md`；`file-memory`、`full-access` 不注册工具，只有配置与边界。
+- **插件页**：左侧栏「插件」中选中对应插件后显示的详情与设置页。
+- **左侧栏**：直接从左侧栏打开的独立面板（记忆、日历与待办）。
+- **右侧栏**：右侧标签栏页面（`magpie-quota` 依赖 `dsh-better-sidebar` 提供的扩展点）。
 
-插件之间只有一处数据耦合：`user-todo` 的到期提醒通过 `notify` 提供的服务投递，两边都不要求对方存在——没有 `notify` 的时候提醒只记录在本地。
+`user-todo` 的到期提醒可通过 `notify` 推送至手机，但两者互不强制依赖：未安装 `notify` 时提醒仅记录在本地。
 
 ## 安装
 
-前置条件：
+环境要求：
+- DeepSeek Harness `0.2.1-rc.3` 及以上版本（`0.2.2-alpha.2` 实测兼容）
+- Node.js 22.5+（`outlook`、`wechat`、`xiaohongshu` 使用内置 `node:sqlite`）
+- pnpm 10+
 
-- DeepSeek Harness `0.2.1-rc.3` 发布线（按 `@deepseek-ai/cordis ^4.0.1` 编写）；更新的运行线同样可以运行，`0.2.2-alpha.2` 实测可用。
-- Node.js 22.5+（`outlook`、`wechat`、`xiaohongshu` 使用 `node:sqlite`），pnpm 10+。
+安装方式（二选一）：
 
-安装一个插件，二选一：
+1. 让助手调用 `plugin_manager`，设置 `action: install_bundle`、`target` 为插件目录的绝对路径。
+2. 命令行执行：
+   ```sh
+   dsh plugin --profile <profile> add /绝对路径/dsh-plugins/<插件>
+   ```
 
-1. 由助手调用 `plugin_manager`，`action: install_bundle`，`target` 传插件目录的绝对路径。
-2. `dsh plugin --profile <profile> add /绝对路径/dsh-plugins/<插件>`。`dsh` 不在 PATH 中时用第一种。
+卸载请使用 `plugin_manager` 的 `remove_bundle`（`target` 传包名）或执行 `dsh plugin --profile <profile> remove <包名>`。
 
-安装会把插件目录作为 `link:` 依赖写入 profile 的 `package.json` 并加入 bundle 列表；插件自己的 `cordis.patch.yml` 负责把它的行带入 Loader。卸载用 `plugin_manager` 的 `remove_bundle`（`target` 传包名）或 `dsh plugin --profile <profile> remove <包名>`；插件留下的本机数据不会自动删除。
+`bilibili`、`deepxiv`、`notify`、`outlook`、`user-todo`、`wechat`、`xiaohongshu`、`zhihu` 包含运行时依赖，安装前需先进入各自目录运行一次 `pnpm install`；`stock`、`taobao`、`v2ex` 仅测试需要 `pnpm install`。
 
-有运行时依赖的 8 个插件（`bilibili`、`deepxiv`、`notify`、`outlook`、`user-todo`、`wechat`、`xiaohongshu`、`zhihu`）各自是独立工程，需要先在各自目录 `pnpm install` 一次。依赖都来自 npm：
+## 目录结构
 
-| 包 | 版本 | 用在哪 |
-| --- | --- | --- |
-| `@deepseek-ai/dsh-credentials` | `0.2.1-rc.3` | `bilibili`、`deepxiv`、`notify`、`outlook`、`xiaohongshu`、`zhihu` |
-| `@deepseek-ai/dsh-storage-domain` | `0.2.1-rc.3` | `bilibili`、`user-todo` |
-| `@deepseek-ai/schemastery` | `~3.18.5` | `outlook`、`wechat` |
-| `@azure/msal-node` | `7.0.1` | `outlook` |
-| `zod` | `4.4.3` | `bilibili`、`user-todo` |
-| `@deepseek-ai/dsh-tools` | `0.2.1-rc.2` | 仅测试：除 `file-memory`、`full-access` 外 11 个插件的 devDependency |
-| `@deepseek-ai/dsh-credentials-local` | `0.2.1-rc.3` | 仅测试：`deepxiv`、`notify` |
-| `@deepseek-ai/dsh-client-ui-primitives` | `0.2.1-rc.3` | 浏览器半边的 external：`user-todo` |
-| `react`、`react-dom`、`jsdom` | `^18.2.0` / `18.2.0` / `^29.1.1` | 仅测试：`user-todo` 的面板检查 |
-
-`file-memory`、`full-access`、`stock`、`taobao`、`v2ex` 没有运行时依赖，但 `stock`、`taobao`、`v2ex` 的测试要 `@deepseek-ai/dsh-tools`，仍要 `pnpm install` 一次。
-
-## 目录约定
-
-| 路径 | 作用 |
+| 路径 | 说明 |
 | --- | --- |
-| `index.js` | Host 入口：`inject` 声明依赖，`apply` 注册工具、路由或提示段 |
-| `src/` | Host 侧实现 |
-| `client.js` 或 `web/client.js` | 浏览器半边，由 `package.json` 的 `dsh.client` 声明 |
-| `locale/zh.json`、`locale/en.json` | 插件页标题、描述与界面文案 |
-| `cordis.patch.yml` | 装载行；只写入本部署真正的覆盖 |
-| `tests/` | 离线校验与本地挂载检查 |
-| `icon.svg`、`README.md` | 图标；该插件的工具、配置与边界 |
-| `docs/` | 决策记录：当时为什么这样选，行为以插件 README 为准 |
-| `shared/` | 跨插件共用代码，见下 |
-| `verify-client-locales.mjs`、`verify-client-datetime.mjs` | 根目录的浏览器半边校验，被各插件的 `npm test` 调用 |
+| `index.js` / `src/` | Host 端入口与实现（注册工具、路由或提示词） |
+| `client.js` / `web/client.js` | 前端界面脚本（由 `package.json` 的 `dsh.client` 声明） |
+| `locale/zh.json`、`locale/en.json` | 插件名称与简介文案 |
+| `cordis.patch.yml` | 插件装载配置 |
+| `tests/` | 离线测试与本地检查脚本 |
+| `shared/` | 跨插件共用模块（`http.js`、`route.js`、`schedule.js`） |
+| `verify-client-locales.mjs`、`verify-client-datetime.mjs` | 前端文案与 24 小时制校验脚本 |
 
-`full-access` 只有 patch、locale 与 icon；`stock`、`taobao`、`v2ex` 没有 `src/` 和浏览器半边。根目录的 `shared/` 存放共用代码：`schedule.js`（三个定时抓取任务的适配器）、`http.js`（请求串行、最小间隔、退避、响应体上限与失败载荷）、`route.js`（`/api` 路由样板与错误码）。bundle 以 `../../shared/...` 引用它，单独复制一个插件目录出去会丢失这个依赖；`npm test` 同样依赖根目录的 `verify-client-locales.mjs` 与 `verify-client-datetime.mjs`。需要单独分发时把对应文件一并复制过去。
+> 如需单独拷贝某个插件分发，请一并带上其引用的 `../../shared/...` 与根目录校验脚本。
 
 ## 配置
 
-每个插件的 `cordis.patch.yml` 描述它如何进入 Loader，行中只写入本部署真正的覆盖；默认值只有一份，位于插件代码中。要修改时在 profile 的 `cordis.patch.yml` 里按行 `id` 覆盖：
+默认值均定义在各插件源码中。如需修改，在 profile 的 `cordis.patch.yml` 中按 `id` 覆盖即可：
 
 ```yaml
 - id: stock
   config:
     watchlistMaxEntries: 20
-    panelRefreshMs: 0
 ```
 
-按 `id` 的覆盖会整体替换该行的 `config`，不做深合并：没写入的字段回到默认值。多数插件在加载时校验配置，未知字段、相对路径、越界值会导致加载失败。
+按 `id` 覆盖会**整体替换**该行的 `config` 对象，未声明字段将使用默认值；非法配置会在加载时报错。密钥与登录态统一保存在凭据库（`$DSH_HOME/.credentials.yaml`，明文 YAML，`0600`），在各插件页录入。
 
-密钥不写入配置：token 与登录态都在凭据库（`~/.dsh/.credentials.yaml`，0600，明文），在各自的插件页录入，清单见「数据落在哪」。
+## 本地数据位置
 
-## 数据落在哪
+`$DSH_HOME` 默认为 `~/.dsh`。下列本地文件均未加密存储：
 
-`$DSH_HOME` 默认是 `~/.dsh`。下列文件都没有加密存储。
-
-| 归属 | 位置 | 形态 |
+| 归属 | 路径 | 形式 |
 | --- | --- | --- |
-| `bilibili` | `$DSH_HOME/storages/bilibili/` | 每条记录一个 JSON |
+| `bilibili` | `$DSH_HOME/storages/bilibili/` | JSON 文件 |
 | `outlook` | `$DSH_HOME/storages/outlook/outlook.db` | SQLite + FTS5 |
-| `user-todo` | `$DSH_HOME/storages/user_todo.json` | JSON |
-| `wechat` | `$DSH_HOME/wechat/wechat.db`、`$DSH_HOME/wechat/batches/` | SQLite + 原始批次 |
-| `xiaohongshu` | `$DSH_HOME/storages/xiaohongshu/` | SQLite + 下载图片 |
-| `file-memory` | `$DSH_HOME/memory/` | Markdown |
-| 登录态与 token | `$DSH_HOME/.credentials.yaml` | YAML 明文，0600 |
-| 其余 | 不落盘 | 进程内状态，重启即清 |
-
-凭据库里放 `bilibili`、`outlook`、`xiaohongshu`、`zhihu` 的登录态与 `deepxiv`、`notify` 的 token，都在各自的插件页录入，没有加密。`wechat` 与 `outlook`、`xiaohongshu` 用同一个 `node:sqlite` 驱动，但它落在自己的 `$DSH_HOME/wechat/` 下（导出批次也在那里），其余走 `storages/`。
-
-`deepxiv`、`notify`、`taobao`、`v2ex` 不缓存任何上游内容；`bilibili`、`outlook`、`wechat` 的语料与批次，以及 `xiaohongshu` 的语料与图片，需要由你自行清理。
+| `user-todo` | `$DSH_HOME/storages/user_todo.json` | JSON 文件 |
+| `wechat` | `$DSH_HOME/wechat/wechat.db`、`$DSH_HOME/wechat/batches/` | SQLite + 导出批次 |
+| `xiaohongshu` | `$DSH_HOME/storages/xiaohongshu/` | SQLite + 已下载图片 |
+| `file-memory` | `$DSH_HOME/memory/` | Markdown 文件 |
+| 登录态与 token | `$DSH_HOME/.credentials.yaml` | 明文 YAML（`0600`） |
 
 ## 测试
 
-带 `scripts.test` 的插件在各自目录运行 `npm test`。全部离线：不读本机账号，不访问上游。跑之前先 `pnpm install`——除 `file-memory`、`full-access` 外，11 个插件都要从 devDependencies 取校验器。
-
-- `taobao`、`v2ex` 没有 `scripts.test`，手动运行 `node tests/verify-behavior.mjs`。
-- `full-access` 没有测试；用 `dsh --profile <profile> --dump-config` 检查 `sandbox-policy`、`approval`、`permission` 三行。
-
-带界面的插件还会在 `npm test` 里调用根目录这两个脚本，也可以单独运行，带插件名只查一个：
+各插件目录下可运行离线测试（不访问真实账号与上游接口）：
 
 ```sh
-node verify-client-locales.mjs [插件]    # 中英词典键集合一致，每个 t(...) 都有文案
-node verify-client-datetime.mjs [插件]   # 只允许 24 小时制，不出现 AM/PM 或英文月名
+npm test                          # 适用于配置了 test 脚本的插件
+node tests/verify-behavior.mjs    # taobao、v2ex 手动运行
 ```
 
-## 修改后立即生效
+单独校验前端文案与时间格式：
 
-profile 的 `hmr` 行把 `base` 指向本目录后，修改源码会被就地重载：
+```sh
+node verify-client-locales.mjs [插件]
+node verify-client-datetime.mjs [插件]
+```
+
+## 热重载与排障
+
+在 profile 的 `hmr` 配置中将 `base` 设为本仓库目录后，修改源码保存即可自动重载（勿将 profile 目录设为 `base`，否则 watcher 会顺着软链 `node_modules` 递归遍历导致 EMFILE）：
 
 ```yaml
 - id: hmr
@@ -133,30 +114,14 @@ profile 的 `hmr` 行把 `base` 指向本目录后，修改源码会被就地重
       - .
 ```
 
-`base` 必须是本目录。默认的 `**/node_modules` 排除规则依赖相对路径，若把 profile 目录作为 base，watcher 会沿链接的 `node_modules` 一直遍历，最终以 EMFILE 退出。
+- 修改 `index.js`、`src/*.js`、`client.js`、`shared/*.js` 保存即热重载；修改 `cordis.patch.yml` 或新增依赖需重启。
+- 若由 launchd 托管，可使用 `launchctl kickstart -k gui/$(id -u)/com.dsh.web` 重启。
+- 若出现 `disabling profile plugin row "<id>": … incompatible with dsh <version>`，按提示执行 `dsh plugin --profile <profile> allow-version …` 或移除 profile 中的旧版本依赖后重启即可。
 
-| 改动 | 生效方式 |
-| --- | --- |
-| `index.js`、`src/*.js`、`client.js`、`shared/*.js` | 保存后 HMR 重载；浏览器半边由客户端图推送替换 |
-| profile 的 `package.json`、profile 与 `$DSH_HOME` 的 `cordis.patch.yml` | 重新组合 |
-| 插件自己的 `cordis.patch.yml`、新增或升级的依赖 | 需要重启（`node_modules` 不被监视） |
-| DSH 本体的 `lib/` | 重新构建并重启 |
+## 注意事项
 
-热重载成功时 stderr 无输出；失败时写入 `failed to reload plugin at …` 与原因。入口停留在 `waiting for service: …` 说明组合缺少服务，与 HMR 无关。
-
-由 launchd 托管时（`~/Library/LaunchAgents/com.dsh.web.plist`）重启：`launchctl kickstart -k gui/$(id -u)/com.dsh.web`。同一端口不要再启动第二个实例。
-
-排障：stderr 出现 `disabling profile plugin row "<id>": … incompatible with dsh <version>`，说明该行解析到了 profile 中旧版本的 `@deepseek-ai/dsh-*` 副本；按提示用 `dsh plugin --profile <profile> allow-version …` 放行，或把那份副本从 profile 依赖中移除后重启。
-
-## 安全与边界
-
-- 仓库中没有真实凭据，测试中的 `sk-live-value-001` 等都是假值。
-- 插件页是本机 HTTP 接口，位于 `/api/...` 下。Harness 的 Host/Origin 围栏与浏览器鉴权在进入处理函数前已经执行，但无法阻止同机其他进程。
-- 向外写入只发生在少数位置：`notify` 发送消息，`outlook` 授予 `Mail.Send` 后按确认发信，`full-access` 取消文件围栏并关闭审批。其余插件只读上游、只写本机。
-- 外部内容属于数据，不能当作指令。论文、帖子、行情、邮件、微信消息都会进入模型上下文；各插件在自己的工具描述中标注了这一点。
-- 定时任务绑定会话。`bilibili`、`outlook`、`wechat` 的抓取任务属于创建它的会话，在「自动化任务」中删除后不会自动恢复，三个插件页都提供「重建」入口。
-- `wechat` 只读导出批次。导出器是另一个项目，需要写入 `--format jsonl`；插件不驱动导出器，也不修改微信数据。
-- 行情不构成投资建议，`stock` 的值是上游最后一次返回的快照，可能延迟、过期或不一致。
+- **写操作范围**：仅 `notify`（推送消息）、`outlook`（授权 `Mail.Send` 后按确认发信）和 `full-access`（放开文件权限与审批）会对外写入或放宽权限，其余插件均只读上游、只写本机。
+- **定时任务**：`bilibili`、`outlook`、`wechat` 的抓取任务绑定到创建它的会话；在「自动化任务」中删除后需在对应插件页重新创建。
 
 ## 许可证
 

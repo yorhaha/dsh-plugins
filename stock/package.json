@@ -1,7 +1,7 @@
 {
   "name": "dsh-stock",
   "version": "0.1.0",
-  "description": "Read-only market queries for DeepSeek Harness: twelve Host tools (stock_search, stock_quote, stock_kline, stock_minute, stock_bars, stock_minute_history, stock_moneyflow, stock_fundamentals, stock_market, stock_rank, stock_news, stock_macro) over public Tencent and East Money endpoints, with request serialization, per-host backoff, and bounded responses.",
+  "description": "Stock market plugin for DeepSeek Harness: query quotes, charts, fundamentals, news, and macro data.",
   "private": true,
   "license": "MIT",
   "type": "module",

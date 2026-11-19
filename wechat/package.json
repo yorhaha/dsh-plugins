@@ -1,7 +1,7 @@
 {
   "name": "dsh-wechat",
   "version": "0.1.0",
-  "description": "WeChat export batches for DeepSeek Harness: imports the exporter's per-chat JSONL batches into a local SQLite corpus, exposes the messages to the agent as search over conversations and time, and ships the row page that reports the pipeline state and imports a batch.",
+  "description": "WeChat export plugin for DeepSeek Harness: import and search local WeChat chat exports.",
   "private": true,
   "license": "MIT",
   "type": "module",

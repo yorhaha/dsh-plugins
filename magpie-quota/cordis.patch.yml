@@ -1,0 +1,40 @@
+# dsh-magpie-quota bundle patch: mounts the magpie allowance page.
+#
+# The row id and package name must stay unique in the Loader graph. Every value
+# under `config` is this plugin's default, so a deployment that wants another
+# gateway address or a tighter bound overrides the row from its own patch layer
+# instead of editing this file.
+#
+# The plugin validates this block itself at load and fails the load on an
+# unknown key, a relative gateway, a non-http(s) scheme, or an out-of-range
+# bound, rather than silently falling back to a default that would report "not
+# running" for an address the deployment meant to change.
+#
+# Nothing here is a secret and nothing here writes: the plugin makes one GET to
+# magpie's loopback gateway per refresh and registers no tool.
+- insert:
+    - id: magpie-quota
+      name: 'dsh-magpie-quota'
+      config:
+        # Master switch. When false the plugin registers no route at all.
+        enabled: true
+        # magpie's gateway origin, as `~/.config/magpie/gateway.json` reports it.
+        # The tray, the window, and this gateway share one loopback port, so a
+        # deployment that moved it changes this line.
+        gateway: 'http://127.0.0.1:3425'
+        # How long one quota read may take, body included. A stopped magpie
+        # refuses the connection immediately; this bound is for a gateway that
+        # accepts and then stalls.
+        timeoutMs: 4000
+        # Largest response body accepted, in characters. The real listing is a
+        # few kilobytes; the bound exists so a wrong port cannot stream an
+        # unbounded body into memory.
+        maxBytes: 524288
+        # Allowance windows the page never shows, as `provider/window name`.
+        # Matching is exact and split on the first `/`; an entry that matches
+        # nothing hides nothing. The default drops WorkBuddy's `Total credits`,
+        # which is `Credits` plus `Extra credits` and repeats one of their
+        # expiry instants — three rows for two facts. Delete the line to get it
+        # back, or add another to hide something else.
+        hiddenWindows:
+          - workbuddy/Total credits

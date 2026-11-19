@@ -1,0 +1,47 @@
+{
+  "name": "dsh-magpie-quota",
+  "version": "0.1.0",
+  "description": "Display Magpie provider quotas in the DeepSeek Harness right sidebar.",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "locale/*.json",
+    "icon.svg"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\" && node ../verify-client-locales.mjs magpie-quota && node ../verify-client-datetime.mjs magpie-quota"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "cordis",
+    "magpie",
+    "quota",
+    "allowance"
+  ]
+}

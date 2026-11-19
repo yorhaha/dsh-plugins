@@ -1,7 +1,7 @@
 {
   "name": "dsh-v2ex",
   "version": "0.1.0",
-  "description": "Read-only V2EX queries for DeepSeek Harness: five Host tools (v2ex_hot, v2ex_latest, v2ex_node, v2ex_topic, v2ex_replies) over the public V2EX API, with request serialization, rate-limit backoff, and trimmed responses.",
+  "description": "V2EX plugin for DeepSeek Harness: browse hot, latest, and node topics with replies.",
   "private": true,
   "license": "MIT",
   "type": "module",

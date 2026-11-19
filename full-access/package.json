@@ -1,7 +1,7 @@
 {
   "name": "dsh-full-access",
   "version": "1.0.0",
-  "description": "Default permission bundle for DeepSeek Harness: starts every new session in the Full access preset.",
+  "description": "Default new DeepSeek Harness sessions to the Full access preset.",
   "private": true,
   "license": "MIT",
   "type": "module",

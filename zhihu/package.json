@@ -1,7 +1,7 @@
 {
   "name": "dsh-zhihu",
   "version": "0.1.0",
-  "description": "Zhihu reading for DeepSeek Harness: a cookie kept in the local credential store, twelve read-only tools for questions, answers, articles, people, comments and the hot list, and a page that manages the cookie, with serialized requests, a per-hour budget, a response cache and a long pause when Zhihu signals risk control.",
+  "description": "Zhihu plugin for DeepSeek Harness: read hot lists, questions, answers, articles, and comments.",
   "private": true,
   "license": "MIT",
   "type": "module",

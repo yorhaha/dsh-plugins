@@ -1,0 +1,100 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "provider": "workbuddy",
+      "name": "WorkBuddy",
+      "kind": "subscription",
+      "plan": "Free plan",
+      "user": "15600150506",
+      "windows": [
+        {
+          "name": "Credits",
+          "used": 0,
+          "remaining": 100,
+          "resetsAt": "2026-11-30T15:59:59Z",
+          "display": "0 / 500",
+          "limit": 500,
+          "unit": "credits"
+        },
+        {
+          "name": "Extra credits",
+          "used": 0.06025221835590845,
+          "remaining": 99.93974778164409,
+          "display": "2.58 / 4282",
+          "amount": 2.57999999,
+          "limit": 4282,
+          "unit": "credits",
+          "runsOutAt": "2026-11-19T12:19:21Z",
+          "runsOut": 497.42000001
+        },
+        {
+          "name": "Total credits",
+          "used": 0.053952320995399414,
+          "remaining": 99.94604767900461,
+          "resetsAt": "2026-11-30T15:59:59Z",
+          "display": "2.58 / 4782",
+          "amount": 2.57999999,
+          "limit": 4782,
+          "unit": "credits",
+          "runsOutAt": "2026-11-19T12:19:21Z",
+          "runsOut": 497.42000001,
+          "holdsWhy": "low"
+        }
+      ],
+      "readAt": "2026-11-19T19:46:59.893835+08:00"
+    },
+    {
+      "provider": "llmbox",
+      "name": "LLMBox",
+      "kind": "subscription",
+      "plan": "已登录",
+      "user": "LLMBox · 当前登录",
+      "until": "2026-12-12T09:40:19.808Z",
+      "readAt": "2026-11-19T19:46:59.893835+08:00"
+    },
+    {
+      "provider": "traex",
+      "name": "traex-cn",
+      "kind": "subscription",
+      "plan": "已登录",
+      "user": "shenpengbo",
+      "until": "2026-11-26T09:37:16Z",
+      "windows": [
+        {
+          "name": "每周额度包",
+          "used": 0,
+          "remaining": 100,
+          "resetsAt": "2026-11-22T15:59:59Z",
+          "display": "已用 0 / 300；剩余 300",
+          "holdsWhy": "low"
+        },
+        {
+          "name": "每日额度包（gpt_56_sol）",
+          "used": 0,
+          "remaining": 100,
+          "resetsAt": "2026-11-19T22:00:00Z",
+          "display": "已用 0 / 80；剩余 80；正在消耗",
+          "holdsWhy": "low"
+        },
+        {
+          "name": "每日额度包（gpt_6）",
+          "used": 0,
+          "remaining": 100,
+          "resetsAt": "2026-11-19T22:00:00Z",
+          "display": "已用 0 / 58；剩余 58",
+          "holdsWhy": "low"
+        },
+        {
+          "name": "每日额度包（gpt_6_1）",
+          "used": 41.064625,
+          "remaining": 58.935375,
+          "resetsAt": "2026-11-19T22:00:00Z",
+          "display": "已用 32.8517 / 80；剩余 47.1483",
+          "holdsWhy": "none"
+        }
+      ],
+      "readAt": "2026-11-19T19:46:12.100000+08:00"
+    }
+  ]
+}

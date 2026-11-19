@@ -1,7 +1,7 @@
 {
   "name": "dsh-deepxiv",
   "version": "0.1.0",
-  "description": "DeepXiv research access for DeepSeek Harness: two agent tools over the full-text arXiv, bioRxiv, medRxiv, and PMC corpora at data.rag.ac.cn, with a row page that keeps the DeepXiv token in the local credential store.",
+  "description": "DeepXiv plugin for DeepSeek Harness: search and read arXiv, bioRxiv, medRxiv, and PMC papers.",
   "private": true,
   "license": "MIT",
   "type": "module",
