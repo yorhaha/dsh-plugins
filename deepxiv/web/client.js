@@ -26,14 +26,21 @@ window.__ModuleLoader__.load({
     const en = {
       loading: 'Loading DeepXiv status…',
       tokenHeading: 'API Token',
+      statusConfigured: 'Configured',
+      statusUnset: 'Not configured',
+      statusUnusable: 'Unusable',
       tokenStateSet: 'Token saved (added {when}).',
       tokenStateUnset: 'No token configured (limited to free test content).',
       tokenStateUnusable: 'Stored token is unusable: {reason}',
       tokenLabel: 'DeepXiv Token',
       tokenHint: 'Saved locally; replaces any existing token.',
+      showToken: 'Show',
+      hideToken: 'Hide',
       save: 'Save token',
       saved: 'Saved.',
       remove: 'Delete token',
+      confirmRemove: 'Confirm delete',
+      cancel: 'Cancel',
       removed: 'Token deleted.',
       verify: 'Verify & Check Quota',
       verifying: 'Verifying…',
@@ -50,6 +57,8 @@ window.__ModuleLoader__.load({
       quotaNote: 'General and agentic quotas are tracked separately.',
       quotaRawHeading: 'Raw response',
       quotaRawNote: 'Full response:',
+      copyRaw: 'Copy',
+      copied: 'Copied',
       quotaWithheld: 'Response hidden because it contains the token.',
       configHeading: 'Reading Limits',
       configBaseUrl: 'Endpoint',
@@ -98,14 +107,21 @@ window.__ModuleLoader__.load({
     const zh = {
       loading: '正在加载状态…',
       tokenHeading: 'API Token',
+      statusConfigured: '已配置',
+      statusUnset: '未配置',
+      statusUnusable: '凭据异常',
       tokenStateSet: '已配置 token（添加于 {when}）。',
       tokenStateUnset: '尚未配置 token（未配置时仅支持免费测试内容）。',
       tokenStateUnusable: '凭据异常：{reason}',
       tokenLabel: 'DeepXiv Token',
       tokenHint: '保存至本地，新值将覆盖旧 token。',
+      showToken: '显示',
+      hideToken: '隐藏',
       save: '保存 token',
       saved: '已保存。',
       remove: '删除 token',
+      confirmRemove: '确认删除',
+      cancel: '取消',
       removed: '已删除 token。',
       verify: '验证并查询额度',
       verifying: '正在验证…',
@@ -122,6 +138,8 @@ window.__ModuleLoader__.load({
       quotaNote: '普通读写与 Agentic 调用使用独立额度池。',
       quotaRawHeading: '原始响应',
       quotaRawNote: '完整响应内容：',
+      copyRaw: '复制',
+      copied: '已复制',
       quotaWithheld: '响应包含 token，已隐藏展示。',
       configHeading: '阅读限制',
       configBaseUrl: '接口地址',
@@ -201,78 +219,135 @@ window.__ModuleLoader__.load({
       return KNOWN_REASONS.has(reason) ? t(`reasons.${reason}`) : String(reason)
     }
 
-    const styles = {
-      page: { padding: '4px 2px 32px', color: 'var(--dsw-alias-label-primary)', maxWidth: '720px' },
-      card: {
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-2)',
-        borderRadius: '10px',
-        padding: '14px 16px',
-        marginBottom: '14px',
-      },
-      cardTitle: { fontSize: '14px', fontWeight: 600, margin: '0 0 8px' },
-      line: { fontSize: '13px', lineHeight: 1.6, margin: '0 0 6px' },
-      caption: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-caption)' },
-      warn: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-warn-label)' },
-      ok: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-success-primary)' },
-      row: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      field: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      fieldLabel: { flex: '0 0 96px', fontSize: '13px' },
-      input: {
-        flex: '1 1 220px',
-        minWidth: '160px',
-        boxSizing: 'border-box',
-        fontSize: '13px',
-        padding: '6px 10px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-bg-layer-1)',
-        color: 'var(--dsw-alias-label-primary)',
-      },
-      button: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-button-elevated-fill)',
-        color: 'var(--dsw-alias-label-primary)',
-        cursor: 'pointer',
-      },
-      primaryButton: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: 'none',
-        background: 'var(--dsw-alias-button-primary-fill)',
-        color: 'var(--dsw-alias-label-primary-foreground)',
-        cursor: 'pointer',
-      },
-      disabled: { opacity: 0.5, cursor: 'default' },
-      list: { margin: '8px 0 0', padding: 0, listStyle: 'none' },
-      listItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '12px',
-        fontSize: '13px',
-        lineHeight: 1.9,
-        borderTop: '1px solid var(--dsw-alias-border-l4)',
-        paddingTop: '2px',
-      },
-      raw: {
-        margin: '6px 0 0',
-        padding: '8px 10px',
-        maxHeight: '220px',
-        overflow: 'auto',
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-        fontSize: '12px',
-        lineHeight: 1.5,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-        borderRadius: '8px',
-        background: 'var(--dsw-alias-bg-layer-1)',
-        color: 'var(--dsw-alias-label-secondary)',
-      },
-    }
+    const CSS = `
+@keyframes dsh-dxv-spin { to { transform: rotate(360deg); } }
+.dsh-dxv-page { padding: 4px 2px 32px; color: var(--dsw-alias-label-primary); max-width: 740px; }
+.dsh-dxv-card {
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.dsh-dxv-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
+}
+.dsh-dxv-card-title { font-size: 14px; font-weight: 600; margin: 0; }
+.dsh-dxv-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px; font-size: 11.5px; line-height: 17px; font-weight: 500;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.14));
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-dxv-badge[data-tone="ok"] {
+  background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l4);
+  color: var(--dsw-alias-state-success-primary);
+}
+.dsh-dxv-badge[data-tone="warn"] {
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.12));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-dxv-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+.dsh-dxv-line { font-size: 13px; line-height: 1.6; margin: 0 0 6px; }
+.dsh-dxv-caption { font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-caption); margin: 4px 0 0; }
+.dsh-dxv-alert {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 9px 12px; border-radius: 8px; margin-top: 10px; margin-bottom: 10px;
+  font-size: 12.5px; line-height: 1.55;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-dxv-alert[data-tone="ok"] { color: var(--dsw-alias-state-success-primary); }
+.dsh-dxv-alert[data-tone="warn"] {
+  border-color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.1));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-dxv-field { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+.dsh-dxv-label { font-size: 12.5px; font-weight: 500; }
+.dsh-dxv-input-wrap { display: flex; align-items: center; gap: 6px; }
+.dsh-dxv-input {
+  flex: 1 1 auto; min-width: 0; width: 100%; box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px;
+  padding: 7px 11px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  transition: border-color 120ms ease;
+}
+.dsh-dxv-input:focus { outline: none; border-color: var(--dsw-alias-brand-primary, #2f6feb); }
+.dsh-dxv-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.dsh-dxv-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 12.5px; font-weight: 500; padding: 6px 13px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-button-elevated-fill);
+  color: var(--dsw-alias-label-primary);
+  cursor: pointer; transition: background 120ms ease, opacity 120ms ease;
+}
+.dsh-dxv-btn:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-dxv-btn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, #2f6feb); outline-offset: 1px; }
+.dsh-dxv-btn[data-variant="primary"] {
+  border-color: transparent;
+  background: var(--dsw-alias-button-primary-fill);
+  color: var(--dsw-alias-label-primary-foreground);
+}
+.dsh-dxv-btn[data-variant="primary"]:hover:not(:disabled) { opacity: 0.9; }
+.dsh-dxv-btn[data-variant="danger"] {
+  border-color: var(--dsw-alias-state-error-primary);
+  background: transparent;
+  color: var(--dsw-alias-state-error-primary);
+}
+.dsh-dxv-btn[data-variant="danger"]:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(192,57,43,.12));
+}
+.dsh-dxv-btn[data-size="sm"] { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
+.dsh-dxv-btn:disabled { opacity: 0.45; cursor: default; }
+.dsh-dxv-spinner {
+  width: 12px; height: 12px; border-radius: 999px;
+  border: 1.8px solid currentColor; border-top-color: transparent;
+  animation: dsh-dxv-spin 0.7s linear infinite; flex: none;
+}
+.dsh-dxv-list { margin: 4px 0 0; padding: 0; list-style: none; }
+.dsh-dxv-list-item {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  font-size: 13px; padding: 7px 0;
+  border-top: 1px solid var(--dsw-alias-border-l1, var(--dsw-alias-border-l4));
+}
+.dsh-dxv-list-item:first-child { border-top: none; padding-top: 2px; }
+.dsh-dxv-list-value {
+  font-size: 12px; color: var(--dsw-alias-label-caption);
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right;
+}
+.dsh-dxv-meter-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.dsh-dxv-meter {
+  padding: 10px 12px; border-radius: 9px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l4);
+}
+.dsh-dxv-meter-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 12.5px; }
+.dsh-dxv-meter-label { font-weight: 500; }
+.dsh-dxv-meter-stat { font-size: 12px; color: var(--dsw-alias-label-caption); font-variant-numeric: tabular-nums; }
+.dsh-dxv-track {
+  height: 5px; margin-top: 7px; border-radius: 999px; overflow: hidden;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.18));
+}
+.dsh-dxv-fill { height: 100%; border-radius: 999px; transition: width 280ms ease; }
+.dsh-dxv-details { margin-top: 10px; }
+.dsh-dxv-summary {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 12px; color: var(--dsw-alias-label-secondary); user-select: none;
+}
+.dsh-dxv-raw-head { display: flex; align-items: center; justify-content: space-between; margin: 8px 0 4px; }
+.dsh-dxv-raw {
+  margin: 0; padding: 10px 12px; max-height: 220px; overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+  border-radius: 8px; border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-secondary);
+}
+`
 
     /**
      * Call one Host action.
@@ -328,22 +403,21 @@ window.__ModuleLoader__.load({
       return `${at.getFullYear()}-${pad2(at.getMonth() + 1)}-${pad2(at.getDate())} ${pad2(at.getHours())}:${pad2(at.getMinutes())}`
     }
 
-    /** One button that disables itself while its action runs. */
+    /** One button that disables itself and shows a spinner while its action runs. */
     function Action(props) {
-      const { label, onClick, busy, primary, disabled } = props
+      const { label, onClick, busy, primary, danger, size, disabled } = props
       const inactive = busy === true || disabled === true
       return h(
         'button',
         {
           type: 'button',
-          style: inactive
-            ? { ...(primary ? styles.primaryButton : styles.button), ...styles.disabled }
-            : primary
-              ? styles.primaryButton
-              : styles.button,
+          className: 'dsh-dxv-btn',
+          'data-variant': danger ? 'danger' : primary ? 'primary' : undefined,
+          'data-size': size,
           disabled: inactive,
           onClick,
         },
+        busy === true ? h('span', { className: 'dsh-dxv-spinner', 'aria-hidden': true }) : null,
         label,
       )
     }
@@ -352,9 +426,9 @@ window.__ModuleLoader__.load({
     function ConfigRow(props) {
       return h(
         'li',
-        { style: styles.listItem },
+        { className: 'dsh-dxv-list-item' },
         h('span', null, props.label),
-        h('span', { style: styles.caption }, props.value),
+        h('span', { className: 'dsh-dxv-list-value' }, props.value),
       )
     }
 
@@ -378,6 +452,45 @@ window.__ModuleLoader__.load({
       return parts.length === 0 ? t('quotaUnknown') : parts.join(' · ')
     }
 
+    /** Visual meter for a single DeepXiv quota pool. */
+    function QuotaMeter(props) {
+      const { t, label, pool } = props
+      const limit = pool?.limit
+      const remaining = pool?.remaining
+      const used = pool?.used
+      let pct = null
+      if (typeof limit === 'number' && limit > 0) {
+        const left = typeof remaining === 'number' ? remaining : Math.max(0, limit - (used ?? 0))
+        pct = Math.max(0, Math.min(100, (left / limit) * 100))
+      }
+      const color =
+        pct === null
+          ? 'var(--dsw-alias-state-idle-primary, #9aa0a6)'
+          : pct < 20
+            ? 'var(--dsw-alias-state-error-primary, #c0392b)'
+            : pct < 50
+              ? 'var(--dsw-alias-state-warn-primary, #b8791a)'
+              : 'var(--dsw-alias-state-success-primary, #1f8f5f)'
+
+      return h(
+        'div',
+        { className: 'dsh-dxv-meter' },
+        h(
+          'div',
+          { className: 'dsh-dxv-meter-head' },
+          h('span', { className: 'dsh-dxv-meter-label' }, label),
+          h('span', { className: 'dsh-dxv-meter-stat' }, quotaText(t, pool)),
+        ),
+        pct === null
+          ? null
+          : h(
+              'div',
+              { className: 'dsh-dxv-track', 'aria-hidden': true },
+              h('div', { className: 'dsh-dxv-fill', style: { width: `${pct}%`, background: color } }),
+            ),
+      )
+    }
+
     /**
      * The settings section.
      * @param {object} props - Slot props, carrying the locale `t` seat.
@@ -389,6 +502,9 @@ window.__ModuleLoader__.load({
       const [error, setError] = React.useState(null)
       const [busy, setBusy] = React.useState(null)
       const [draft, setDraft] = React.useState(null)
+      const [showToken, setShowToken] = React.useState(false)
+      const [confirmDelete, setConfirmDelete] = React.useState(false)
+      const [copiedRaw, setCopiedRaw] = React.useState(false)
       const [notice, setNotice] = React.useState(null)
       const [quota, setQuota] = React.useState(null)
 
@@ -437,6 +553,7 @@ window.__ModuleLoader__.load({
           setStatus(await call('token.save', { token: shown }))
           setDraft(null)
           setQuota(null)
+          setConfirmDelete(false)
           setNotice({ tone: 'ok', text: t('saved') })
         })
 
@@ -445,6 +562,7 @@ window.__ModuleLoader__.load({
           setStatus(await call('token.delete'))
           setDraft(null)
           setQuota(null)
+          setConfirmDelete(false)
           setNotice({ tone: 'ok', text: t('removed') })
         })
 
@@ -455,11 +573,23 @@ window.__ModuleLoader__.load({
           setNotice(null)
         })
 
+      const copyRaw = async () => {
+        if (!quota?.raw) return
+        try {
+          await navigator.clipboard.writeText(quota.raw)
+          setCopiedRaw(true)
+          setTimeout(() => setCopiedRaw(false), 1800)
+        } catch {
+          setCopiedRaw(false)
+        }
+      }
+
       const configured = status?.configured === true
       // A record that exists but cannot be read is exactly the state the copy
       // tells the user to fix, so delete stays available for it.
       const recordExists =
         status !== null && (configured || (status.reason !== undefined && status.reason !== 'record_missing'))
+      const unusable = status !== null && !configured && status.reason !== undefined && status.reason !== 'record_missing'
       const config = status?.config ?? null
       const state =
         status === null
@@ -474,30 +604,68 @@ window.__ModuleLoader__.load({
       // the bundle's locale metadata, so this renders its cards only.
       return h(
         'div',
-        { style: styles.page },
-        error === null ? null : h('p', { style: styles.warn }, t('loadFailed', { code: error })),
+        { className: 'dsh-dxv-page' },
+        h('style', { 'data-plugin-css': 'dsh-deepxiv' }, CSS),
+        error === null
+          ? null
+          : h('div', { className: 'dsh-dxv-alert', 'data-tone': 'warn', role: 'alert' }, t('loadFailed', { code: error })),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('tokenHeading')),
-          h('p', { style: configured ? styles.line : styles.caption }, state),
+          { className: 'dsh-dxv-card' },
           h(
             'div',
-            { style: styles.field },
-            h('label', { style: styles.fieldLabel }, t('tokenLabel')),
-            h('input', {
-              style: styles.input,
-              type: 'text',
-              value: shown,
-              spellCheck: false,
-              autoComplete: 'off',
-              onChange: (event) => setDraft(event.target.value),
-            }),
+            { className: 'dsh-dxv-card-head' },
+            h('h2', { className: 'dsh-dxv-card-title' }, t('tokenHeading')),
+            status === null
+              ? null
+              : h(
+                  'span',
+                  {
+                    className: 'dsh-dxv-badge',
+                    'data-tone': configured ? 'ok' : unusable ? 'warn' : 'neutral',
+                  },
+                  h('span', { className: 'dsh-dxv-dot', 'aria-hidden': true }),
+                  configured ? t('statusConfigured') : unusable ? t('statusUnusable') : t('statusUnset'),
+                ),
           ),
-          h('p', { style: styles.caption }, t('tokenHint')),
+          h('p', { className: configured ? 'dsh-dxv-line' : 'dsh-dxv-caption' }, state),
           h(
             'div',
-            { style: styles.row },
+            { className: 'dsh-dxv-field' },
+            h('label', { className: 'dsh-dxv-label' }, t('tokenLabel')),
+            h(
+              'div',
+              { className: 'dsh-dxv-input-wrap' },
+              h('input', {
+                className: 'dsh-dxv-input',
+                type: showToken ? 'text' : 'password',
+                value: shown,
+                spellCheck: false,
+                autoComplete: 'off',
+                onChange: (event) => setDraft(event.target.value),
+                onKeyDown: (event) => {
+                  if (event.key === 'Enter' && draft !== null && shown.trim() !== '' && busy === null) {
+                    event.preventDefault()
+                    void save()
+                  }
+                },
+              }),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dsh-dxv-btn',
+                  'data-size': 'sm',
+                  onClick: () => setShowToken((prev) => !prev),
+                },
+                showToken ? t('hideToken') : t('showToken'),
+              ),
+            ),
+            h('p', { className: 'dsh-dxv-caption' }, t('tokenHint')),
+          ),
+          h(
+            'div',
+            { className: 'dsh-dxv-row' },
             h(Action, {
               label: t('save'),
               onClick: save,
@@ -508,25 +676,45 @@ window.__ModuleLoader__.load({
               disabled: draft === null || shown.trim() === '',
             }),
             h(Action, {
-              label: t('verify'),
+              label: busy === 'verify' ? t('verifying') : t('verify'),
               onClick: verify,
               busy: busy === 'verify',
               disabled: !configured,
             }),
-            h(Action, { label: t('remove'), onClick: remove, busy: busy === 'remove', disabled: !recordExists }),
+            confirmDelete
+              ? h(
+                  React.Fragment,
+                  null,
+                  h(Action, { label: t('confirmRemove'), danger: true, onClick: remove, busy: busy === 'remove' }),
+                  h(Action, { label: t('cancel'), onClick: () => setConfirmDelete(false), disabled: busy === 'remove' }),
+                )
+              : h(Action, {
+                  label: t('remove'),
+                  onClick: () => setConfirmDelete(true),
+                  disabled: !recordExists,
+                }),
           ),
-          notice === null ? null : h('p', { style: styles.ok }, notice.text),
+          notice === null
+            ? null
+            : h('div', { className: 'dsh-dxv-alert', 'data-tone': notice.tone, style: { marginBottom: 0 } }, notice.text),
         ),
         quota === null
           ? null
           : h(
               'div',
-              { style: styles.card },
-              h('h2', { style: styles.cardTitle }, t('quotaHeading')),
+              { className: 'dsh-dxv-card' },
+              h(
+                'div',
+                { className: 'dsh-dxv-card-head' },
+                h('h2', { className: 'dsh-dxv-card-title' }, t('quotaHeading')),
+                quota.ok === true && quota.tier
+                  ? h('span', { className: 'dsh-dxv-badge' }, quota.tier)
+                  : null,
+              ),
               quota.ok !== true
                 ? h(
-                    'p',
-                    { style: styles.warn },
+                    'div',
+                    { className: 'dsh-dxv-alert', 'data-tone': 'warn', role: 'alert', style: { marginBottom: 0 } },
                     t('verifyRefused', { reason: errorText(t, quota.error?.code ?? 'unknown') }),
                   )
                 : h(
@@ -534,25 +722,38 @@ window.__ModuleLoader__.load({
                     null,
                     h(
                       'ul',
-                      { style: styles.list },
+                      { className: 'dsh-dxv-list' },
                       h(ConfigRow, { label: t('quotaAccount'), value: quota.account ?? t('quotaUnknown') }),
                       h(ConfigRow, { label: t('quotaTier'), value: quota.tier ?? t('quotaUnknown') }),
-                      h(ConfigRow, { label: t('quotaGeneral'), value: quotaText(t, quota.general) }),
-                      h(ConfigRow, { label: t('quotaAgentic'), value: quotaText(t, quota.agentic) }),
                     ),
-                    h('p', { style: styles.caption }, t('quotaNote')),
+                    h(
+                      'div',
+                      { className: 'dsh-dxv-meter-list' },
+                      h(QuotaMeter, { t, label: t('quotaGeneral'), pool: quota.general }),
+                      h(QuotaMeter, { t, label: t('quotaAgentic'), pool: quota.agentic }),
+                    ),
+                    h('p', { className: 'dsh-dxv-caption', style: { marginTop: '10px' } }, t('quotaNote')),
                     // A body that echoes the credential back is never rendered;
                     // the Host withholds it and says so.
                     quota.raw_withheld === true
-                      ? h('p', { style: styles.warn }, t('quotaWithheld'))
+                      ? h('div', { className: 'dsh-dxv-alert', 'data-tone': 'warn', style: { marginBottom: 0 } }, t('quotaWithheld'))
                       : quota.raw === null || quota.raw === undefined
                         ? null
                         : h(
-                            'div',
-                            null,
-                            h('p', { style: styles.caption }, t('quotaRawHeading')),
-                            h('pre', { style: styles.raw }, quota.raw),
-                            h('p', { style: styles.caption }, t('quotaRawNote')),
+                            'details',
+                            { className: 'dsh-dxv-details' },
+                            h('summary', { className: 'dsh-dxv-summary' }, t('quotaRawHeading')),
+                            h(
+                              'div',
+                              { className: 'dsh-dxv-raw-head' },
+                              h('span', { className: 'dsh-dxv-caption', style: { margin: 0 } }, t('quotaRawNote')),
+                              h(
+                                'button',
+                                { type: 'button', className: 'dsh-dxv-btn', 'data-size': 'sm', onClick: () => void copyRaw() },
+                                copiedRaw ? t('copied') : t('copyRaw'),
+                              ),
+                            ),
+                            h('pre', { className: 'dsh-dxv-raw' }, quota.raw),
                           ),
                   ),
             ),
@@ -560,11 +761,15 @@ window.__ModuleLoader__.load({
           ? null
           : h(
               'div',
-              { style: styles.card },
-              h('h2', { style: styles.cardTitle }, t('configHeading')),
+              { className: 'dsh-dxv-card' },
+              h(
+                'div',
+                { className: 'dsh-dxv-card-head' },
+                h('h2', { className: 'dsh-dxv-card-title' }, t('configHeading')),
+              ),
               h(
                 'ul',
-                { style: styles.list },
+                { className: 'dsh-dxv-list' },
                 h(ConfigRow, { label: t('configBaseUrl'), value: config.baseUrl }),
                 h(ConfigRow, {
                   label: t('configRequestTimeout'),
@@ -591,7 +796,7 @@ window.__ModuleLoader__.load({
                   value: t('configChars', { count: config.fullMaxChars }),
                 }),
               ),
-              h('p', { style: styles.caption }, t('configNote')),
+              h('p', { className: 'dsh-dxv-caption', style: { marginTop: '10px' } }, t('configNote')),
             ),
       )
     }

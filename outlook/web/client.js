@@ -77,6 +77,11 @@ window.__ModuleLoader__.load({
 
     const en = {
       accountHeading: 'Account',
+      statusAuthorized: 'Signed in',
+      statusNeedsSetup: 'Setup required',
+      statusSyncing: 'Syncing',
+      statusActive: 'Active',
+      statusPaused: 'Paused',
       setupIntro:
         'Register a public client app in Azure and enter its Client ID and tenant below.',
       setupWhere:
@@ -156,6 +161,11 @@ window.__ModuleLoader__.load({
 
     const zh = {
       accountHeading: '账号',
+      statusAuthorized: '已登录',
+      statusNeedsSetup: '待配置',
+      statusSyncing: '同步中',
+      statusActive: '已启用',
+      statusPaused: '已暂停',
       setupIntro:
         '需先在 Azure 注册公共客户端应用，并在下方填写客户端 ID 与租户。',
       setupWhere:
@@ -232,49 +242,85 @@ window.__ModuleLoader__.load({
       networkFailed: '无法连接 Harness，请检查网络后重试。',
     }
 
-    const styles = {
-      page: { padding: '4px 2px 32px', color: 'var(--dsw-alias-label-primary)', maxWidth: '720px' },
-      card: {
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-2)',
-        borderRadius: '10px',
-        padding: '14px 16px',
-        marginBottom: '14px',
-      },
-      cardTitle: { fontSize: '14px', fontWeight: 600, margin: '0 0 8px' },
-      line: { fontSize: '13px', lineHeight: 1.6, margin: '0 0 6px' },
-      caption: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-caption)' },
-      warn: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-warn-label)' },
-      row: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      link: { color: 'var(--dsw-alias-link)', textDecoration: 'underline', wordBreak: 'break-all' },
-      codeBox: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        flexWrap: 'wrap',
-        marginTop: '10px',
-        padding: '10px 12px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-1)',
-      },
-      code: {
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-        fontSize: '20px',
-        fontWeight: 600,
-        letterSpacing: '0.12em',
-      },
-      list: { margin: '8px 0 0', padding: 0, listStyle: 'none' },
-      listItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '12px',
-        fontSize: '13px',
-        lineHeight: 1.9,
-        borderTop: '1px solid var(--dsw-alias-border-l4)',
-        paddingTop: '2px',
-      },
-    }
+    const CSS = `
+@keyframes dsh-ol-spin { to { transform: rotate(360deg); } }
+.dsh-ol-page { padding: 4px 2px 32px; color: var(--dsw-alias-label-primary); max-width: 740px; }
+.dsh-ol-card {
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.dsh-ol-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
+}
+.dsh-ol-card-title { font-size: 14px; font-weight: 600; margin: 0; }
+.dsh-ol-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px; font-size: 11.5px; line-height: 17px; font-weight: 500;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.14));
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-ol-badge[data-tone="ok"] {
+  background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l4);
+  color: var(--dsw-alias-state-success-primary);
+}
+.dsh-ol-badge[data-tone="warn"] {
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.12));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-ol-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+.dsh-ol-line { font-size: 13px; line-height: 1.6; margin: 0 0 6px; }
+.dsh-ol-caption { font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-caption); margin: 4px 0 0; }
+.dsh-ol-alert {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: 8px; margin: 8px 0;
+  font-size: 12.5px; line-height: 1.55;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-ol-alert[data-tone="warn"] {
+  border-color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.1));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-ol-alert[data-tone="ok"] { color: var(--dsw-alias-state-success-primary); }
+.dsh-ol-spinner {
+  width: 12px; height: 12px; border-radius: 999px;
+  border: 1.8px solid currentColor; border-top-color: transparent;
+  animation: dsh-ol-spin 0.7s linear infinite; flex: none;
+}
+.dsh-ol-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.dsh-ol-check {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--dsw-alias-label-secondary); cursor: pointer; user-select: none;
+}
+.dsh-ol-check input { width: 15px; height: 15px; accent-color: var(--dsw-alias-brand-primary, #2f6feb); cursor: pointer; }
+.dsh-ol-link { color: var(--dsw-alias-link); text-decoration: underline; word-break: break-all; }
+.dsh-ol-code-box {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-top: 10px; padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-ol-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 20px; font-weight: 600; letter-spacing: 0.14em;
+}
+.dsh-ol-list { margin: 8px 0 0; padding: 0; list-style: none; }
+.dsh-ol-list-item {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  font-size: 13px; padding: 7px 0;
+  border-top: 1px solid var(--dsw-alias-border-l1, var(--dsw-alias-border-l4));
+}
+.dsh-ol-list-item:first-child { border-top: none; padding-top: 2px; }
+.dsh-ol-list-value {
+  font-size: 12px; color: var(--dsw-alias-label-caption);
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right;
+}
+`
 
     /**
      * Call one Host action.
@@ -378,9 +424,9 @@ window.__ModuleLoader__.load({
       if (entry.snapshotComplete === false) parts.push(t('bounded'))
       return h(
         'li',
-        { style: styles.listItem },
+        { className: 'dsh-ol-list-item' },
         h('span', null, t('mailLabel')),
-        h('span', { style: styles.caption }, parts.join(' · ')),
+        h('span', { className: 'dsh-ol-list-value' }, parts.join(' · ')),
       )
     }
 
@@ -570,14 +616,14 @@ window.__ModuleLoader__.load({
 
       const accountBody = []
       if (status !== null && !configured) {
-        accountBody.push(h('p', { key: 'intro', style: styles.line }, t('setupIntro')))
-        accountBody.push(h('p', { key: 'where', style: styles.caption }, t('setupWhere')))
+        accountBody.push(h('p', { key: 'intro', className: 'dsh-ol-line' }, t('setupIntro')))
+        accountBody.push(h('p', { key: 'where', className: 'dsh-ol-caption' }, t('setupWhere')))
       }
       if (status !== null) {
         accountBody.push(
           h(
             'p',
-            { key: 'scopes', style: styles.caption },
+            { key: 'scopes', className: 'dsh-ol-caption', style: { marginBottom: '8px' } },
             t('scopesInUse', { scopes: status.config.scopes.join(', ') }),
           ),
         )
@@ -634,23 +680,23 @@ window.__ModuleLoader__.load({
         ),
       )
       if (sync !== null && sync.authRequired === true) {
-        accountBody.push(h('p', { key: 'authRequired', style: styles.warn }, t('authRequired')))
+        accountBody.push(h('div', { key: 'authRequired', className: 'dsh-ol-alert', 'data-tone': 'warn' }, t('authRequired')))
       }
       if (login !== null) {
         if (login.status === 'waiting') {
-          accountBody.push(h('p', { key: 'hint', style: styles.line }, t('deviceHint')))
+          accountBody.push(h('p', { key: 'hint', className: 'dsh-ol-line', style: { marginTop: '10px' } }, t('deviceHint')))
           if (login.verificationUri !== null) {
             accountBody.push(
               h(
                 'p',
-                { key: 'link', style: styles.line },
+                { key: 'link', className: 'dsh-ol-line' },
                 h(
                   'a',
                   {
                     href: login.verificationUri,
                     target: '_blank',
                     rel: 'noreferrer',
-                    style: styles.link,
+                    className: 'dsh-ol-link',
                   },
                   login.verificationUri,
                 ),
@@ -661,15 +707,15 @@ window.__ModuleLoader__.load({
             accountBody.push(
               h(
                 'div',
-                { key: 'code', style: styles.codeBox },
-                h('span', { key: 'value', style: styles.code }, login.userCode),
+                { key: 'code', className: 'dsh-ol-code-box' },
+                h('span', { key: 'value', className: 'dsh-ol-code' }, login.userCode),
                 h(Action, { key: 'copy', label: copied ? t('copied') : t('copyCode'), onClick: copyCode }),
               ),
             )
           }
         }
         if (login.message !== null) {
-          accountBody.push(h('p', { key: 'message', style: styles.caption }, login.message))
+          accountBody.push(h('p', { key: 'message', className: 'dsh-ol-caption' }, login.message))
         }
         const stateText = {
           waiting: t('loginWaiting'),
@@ -680,34 +726,42 @@ window.__ModuleLoader__.load({
         }[login.status]
         if (stateText !== undefined) {
           const severe = login.status === 'failed' || login.status === 'expired'
-          accountBody.push(h('p', { key: 'state', style: severe ? styles.warn : styles.line }, stateText))
+          const ok = login.status === 'succeeded'
+          accountBody.push(
+            h(
+              'div',
+              { key: 'state', className: 'dsh-ol-alert', 'data-tone': severe ? 'warn' : ok ? 'ok' : undefined },
+              login.status === 'waiting' ? h('span', { className: 'dsh-ol-spinner', 'aria-hidden': true }) : null,
+              stateText,
+            ),
+          )
         }
         if (login.errorCode !== null) {
           accountBody.push(
-            h('p', { key: 'why', style: styles.caption }, t('loginFailedCode', { code: login.errorCode })),
+            h('p', { key: 'why', className: 'dsh-ol-caption' }, t('loginFailedCode', { code: login.errorCode })),
           )
         }
         if (login.status === 'waiting') {
           if (login.expiresAt !== null) {
             accountBody.push(
-              h('p', { key: 'expires', style: styles.caption }, t('codeExpires', { when: when(login.expiresAt) })),
+              h('p', { key: 'expires', className: 'dsh-ol-caption' }, t('codeExpires', { when: when(login.expiresAt) })),
             )
           }
           accountBody.push(
             h(
               'div',
-              { key: 'cancel', style: styles.row },
+              { key: 'cancel', className: 'dsh-ol-row' },
               h(Action, { label: t('cancel'), onClick: cancelLogin, busy: busy === 'cancel' }),
             ),
           )
         }
       }
       if (authorized) {
-        accountBody.push(h('p', { key: 'who', style: styles.line }, t('signedInAs', { name: accountName })))
+        accountBody.push(h('p', { key: 'who', className: 'dsh-ol-line', style: { marginTop: '10px' } }, t('signedInAs', { name: accountName })))
         accountBody.push(
           h(
             'div',
-            { key: 'signOut', style: styles.row },
+            { key: 'signOut', className: 'dsh-ol-row' },
             h(Action, { label: t('signOut'), onClick: signOut, busy: busy === 'signout' }),
           ),
         )
@@ -715,7 +769,7 @@ window.__ModuleLoader__.load({
         accountBody.push(
           h(
             'div',
-            { key: 'signIn', style: styles.row },
+            { key: 'signIn', className: 'dsh-ol-row' },
             h(Action, {
               label: login === null ? t('signIn') : t('signInAgain'),
               onClick: signIn,
@@ -726,7 +780,7 @@ window.__ModuleLoader__.load({
           ),
         )
         if (status !== null && !configured) {
-          accountBody.push(h('p', { key: 'signInWhy', style: styles.caption }, t('signInNeedsClientId')))
+          accountBody.push(h('p', { key: 'signInWhy', className: 'dsh-ol-caption' }, t('signInNeedsClientId')))
         }
       }
 
@@ -735,7 +789,7 @@ window.__ModuleLoader__.load({
         dataBody.push(
           h(
             'p',
-            { key: 'lastRun', style: styles.line },
+            { key: 'lastRun', className: 'dsh-ol-line' },
             sync.lastRunAt === null ? t('never') : t('lastRunAt', { when: when(sync.lastRunAt) }),
           ),
         )
@@ -743,23 +797,27 @@ window.__ModuleLoader__.load({
           dataBody.push(
             h(
               'p',
-              { key: 'lastStatus', style: styles.caption },
+              { key: 'lastStatus', className: 'dsh-ol-caption' },
               t('runStatus', { status: runStatusText(t, sync.lastRunStatus) }),
             ),
           )
         }
         if (sync.lastErrorCode !== null) {
-          dataBody.push(h('p', { key: 'lastError', style: styles.warn }, t('failedRun', { code: sync.lastErrorCode })))
+          dataBody.push(h('div', { key: 'lastError', className: 'dsh-ol-alert', 'data-tone': 'warn' }, t('failedRun', { code: sync.lastErrorCode })))
         }
         if (sync.retryNotBefore !== null && Date.parse(sync.retryNotBefore) > Date.now()) {
           dataBody.push(
-            h('p', { key: 'retry', style: styles.warn }, t('retryAt', { when: when(sync.retryNotBefore) })),
+            h('div', { key: 'retry', className: 'dsh-ol-alert', 'data-tone': 'warn' }, t('retryAt', { when: when(sync.retryNotBefore) })),
           )
         }
         if (sync.running === true || awaiting !== null) {
-          dataBody.push(h('p', { key: 'running', style: styles.line }, sync.progress ?? t('running')))
+          dataBody.push(
+            h('div', { key: 'running', className: 'dsh-ol-alert' },
+              h('span', { className: 'dsh-ol-spinner', 'aria-hidden': true }),
+              sync.progress ?? t('running')),
+          )
         } else if (stale) {
-          dataBody.push(h('p', { key: 'stale', style: styles.warn }, t('stale')))
+          dataBody.push(h('div', { key: 'stale', className: 'dsh-ol-alert', 'data-tone': 'warn' }, t('stale')))
         }
       }
       if (notice !== null) {
@@ -767,16 +825,16 @@ window.__ModuleLoader__.load({
           notice === 'busy' || notice === 'not_configured' || notice === 'auth_required'
             ? t(`reasons.${notice}`)
             : notice
-        dataBody.push(h('p', { key: 'notice', style: styles.warn }, t('notStarted', { reason: known })))
+        dataBody.push(h('div', { key: 'notice', className: 'dsh-ol-alert', 'data-tone': 'warn' }, t('notStarted', { reason: known })))
       }
       if (status !== null) {
         dataBody.push(
-          h('ul', { key: 'corpus', style: styles.list }, h(MailRow, { t, entry: status.mail })),
+          h('ul', { key: 'corpus', className: 'dsh-ol-list' }, h(MailRow, { t, entry: status.mail })),
         )
         dataBody.push(
           h(
             'p',
-            { key: 'database', style: styles.caption },
+            { key: 'database', className: 'dsh-ol-caption' },
             t('databaseLine', { path: status.database.path, mb: megabytes(status.database.bytes) }),
           ),
         )
@@ -784,7 +842,7 @@ window.__ModuleLoader__.load({
       dataBody.push(
         h(
           'div',
-          { key: 'actions', style: styles.row },
+          { key: 'actions', className: 'dsh-ol-row' },
           h(Action, {
             label: t('syncNow'),
             onClick: syncNow,
@@ -794,41 +852,41 @@ window.__ModuleLoader__.load({
           }),
           h(
             'label',
-            { style: styles.caption },
+            { className: 'dsh-ol-check' },
             h('input', {
               type: 'checkbox',
               checked: backfill,
               disabled: !canSync,
               onChange: (event) => setBackfill(event.target.checked),
             }),
-            ` ${t('backfill')}`,
+            t('backfill'),
           ),
         ),
       )
       if (disabledReason !== null) {
-        dataBody.push(h('p', { key: 'why', style: styles.caption }, disabledReason))
+        dataBody.push(h('p', { key: 'why', className: 'dsh-ol-caption' }, disabledReason))
       }
 
       const scheduleBody = []
       if (schedule !== null && schedule.available === false) {
-        scheduleBody.push(h('p', { key: 'na', style: styles.line }, t('scheduleUnavailable')))
+        scheduleBody.push(h('p', { key: 'na', className: 'dsh-ol-line' }, t('scheduleUnavailable')))
       } else if (schedule !== null) {
         const first = schedule.tasks[0]
         if (first === undefined) {
-          scheduleBody.push(h('p', { key: 'missing', style: styles.line }, t('scheduleMissing')))
+          scheduleBody.push(h('p', { key: 'missing', className: 'dsh-ol-line' }, t('scheduleMissing')))
         } else {
           scheduleBody.push(
             h(
               'ul',
-              { key: 'tasks', style: styles.list },
+              { key: 'tasks', className: 'dsh-ol-list' },
               schedule.tasks.map((task) =>
                 h(
                   'li',
-                  { key: task.id, style: styles.listItem },
+                  { key: task.id, className: 'dsh-ol-list-item' },
                   h('span', null, task.title),
                   h(
                     'span',
-                    { style: styles.caption },
+                    { className: 'dsh-ol-list-value' },
                     `${task.status === 'active' ? t('taskActive') : t('taskInactive')} · ${
                       t('scheduleNextRun', { when: when(task.nextRunAt) })
                     }`,
@@ -838,11 +896,11 @@ window.__ModuleLoader__.load({
             ),
           )
         }
-        scheduleBody.push(h('p', { key: 'note', style: styles.caption }, t('scheduleNote')))
+        scheduleBody.push(h('p', { key: 'note', className: 'dsh-ol-caption' }, t('scheduleNote')))
         scheduleBody.push(
           h(
             'div',
-            { key: 'actions', style: styles.row },
+            { key: 'actions', className: 'dsh-ol-row' },
             h(Action, {
               label: first === undefined ? t('setUp') : t('recreate'),
               onClick: () =>
@@ -865,7 +923,7 @@ window.__ModuleLoader__.load({
         accountBody.push(
           h(
             'p',
-            { key: 'granted', style: styles.caption },
+            { key: 'granted', className: 'dsh-ol-caption' },
             granted === null
               ? t('grantedScopesNone')
               : t('grantedScopes', { scopes: granted.length === 0 ? '—' : granted.join(', ') }),
@@ -873,21 +931,71 @@ window.__ModuleLoader__.load({
         )
       }
 
+      const scheduleActive = schedule !== null && schedule.available !== false && schedule.active === true
+      const scheduleBadge = schedule === null || schedule.available === false
+        ? null
+        : h(
+            'span',
+            { className: 'dsh-ol-badge', 'data-tone': scheduleActive ? 'ok' : 'neutral' },
+            h('span', { className: 'dsh-ol-dot', 'aria-hidden': true }),
+            scheduleActive ? t('statusActive') : t('statusPaused'),
+          )
+
       // The Plugins panel draws this page's title, version, and description from
       // the bundle's locale metadata, so this renders its cards only.
       return h(
         'div',
-        { style: styles.page },
+        { className: 'dsh-ol-page' },
+        h('style', { 'data-plugin-css': 'dsh-outlook' }, CSS),
         error === null
           ? null
           : h(
-              'p',
-              { style: styles.warn },
+              'div',
+              { className: 'dsh-ol-alert', 'data-tone': 'warn', role: 'alert' },
               error === 'network_error' ? t('networkFailed') : t('loadFailed', { code: error }),
             ),
-        h('div', { style: styles.card }, h('h2', { style: styles.cardTitle }, t('accountHeading')), ...accountBody),
-        h('div', { style: styles.card }, h('h2', { style: styles.cardTitle }, t('dataHeading')), ...dataBody),
-        h('div', { style: styles.card }, h('h2', { style: styles.cardTitle }, t('scheduleHeading')), ...scheduleBody),
+        h(
+          'div',
+          { className: 'dsh-ol-card' },
+          h(
+            'div',
+            { className: 'dsh-ol-card-head' },
+            h('h2', { className: 'dsh-ol-card-title' }, t('accountHeading')),
+            status === null
+              ? null
+              : h(
+                  'span',
+                  { className: 'dsh-ol-badge', 'data-tone': authorized ? 'ok' : 'warn' },
+                  h('span', { className: 'dsh-ol-dot', 'aria-hidden': true }),
+                  authorized ? t('statusAuthorized') : t('statusNeedsSetup'),
+                ),
+          ),
+          ...accountBody,
+        ),
+        h(
+          'div',
+          { className: 'dsh-ol-card' },
+          h(
+            'div',
+            { className: 'dsh-ol-card-head' },
+            h('h2', { className: 'dsh-ol-card-title' }, t('dataHeading')),
+            syncing
+              ? h('span', { className: 'dsh-ol-badge' }, h('span', { className: 'dsh-ol-spinner', 'aria-hidden': true }), t('statusSyncing'))
+              : null,
+          ),
+          ...dataBody,
+        ),
+        h(
+          'div',
+          { className: 'dsh-ol-card' },
+          h(
+            'div',
+            { className: 'dsh-ol-card-head' },
+            h('h2', { className: 'dsh-ol-card-title' }, t('scheduleHeading')),
+            scheduleBadge,
+          ),
+          ...scheduleBody,
+        ),
       )
     }
 

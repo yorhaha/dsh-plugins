@@ -472,9 +472,9 @@ window.__ModuleLoader__.load({
         flex: 'none',
         padding: '8px 10px',
         boxSizing: 'border-box',
-        border: `1px solid ${TOKEN.border}`,
+        border: `1px solid ${TOKEN.low}`,
         borderRadius: 8,
-        background: TOKEN.layer1,
+        background: 'var(--dsw-alias-interactive-bg-hover-danger, rgba(192,57,43,0.08))',
         color: TOKEN.low,
         font: TOKEN.fontXxxs,
         whiteSpace: 'normal',
@@ -529,9 +529,21 @@ window.__ModuleLoader__.load({
       },
       windowValue: {
         flex: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
         font: TOKEN.fontXxxs,
         fontVariantNumeric: 'tabular-nums',
         color: TOKEN.muted,
+      },
+      pressureDot(color) {
+        return {
+          width: 6,
+          height: 6,
+          borderRadius: 999,
+          background: color,
+          flex: 'none',
+        }
       },
       track: {
         height: 4,
@@ -546,6 +558,7 @@ window.__ModuleLoader__.load({
           height: '100%',
           borderRadius: 999,
           background: color,
+          transition: 'width 280ms ease',
         }
       },
       windowFoot: {
@@ -628,7 +641,9 @@ window.__ModuleLoader__.load({
       return h('div', { style: styles.window },
         h('div', { style: styles.windowHead },
           h('span', { style: styles.windowName, title: window.name }, window.name),
-          h('span', { style: styles.windowValue }, value)),
+          h('span', { style: styles.windowValue },
+            h('span', { style: styles.pressureDot(color), 'aria-hidden': true }),
+            value)),
         h('div', { style: styles.track, 'aria-hidden': true },
           h('div', { style: styles.fill(window.remainingPct, color) })),
         h('div', { style: styles.windowFoot },
@@ -657,7 +672,7 @@ window.__ModuleLoader__.load({
       const meta = [account.plan, account.user]
         .filter(value => value !== null && value !== '' && !value.includes(account.name))
       if (account.until !== null) meta.push(t('validUntil', { when: when(account.until) }))
-      return h('section', { style: styles.card },
+      return h('section', { style: styles.card, className: 'magpie-quota-card' },
         h('div', { style: styles.cardHead },
           h('span', { style: styles.cardTitle }, account.name),
           meta.length === 0
@@ -669,17 +684,33 @@ window.__ModuleLoader__.load({
         })))
     }
 
-    /**
-     * The hover and focus treatments, which inline styles cannot express.
+    /** Small refresh glyph for the header action. */
+    function RefreshGlyph(props) {
+      return h('svg', {
+        width: 11, height: 11, viewBox: '0 0 24 24', fill: 'none',
+        stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round',
+        'aria-hidden': true, focusable: false,
+        className: props.spin ? 'magpie-quota-spin' : undefined,
+      },
+        h('path', { d: 'M20 12a8 8 0 1 1-2.4-5.7' }),
+        h('path', { d: 'M20 4v5h-5' }))
+    }
+
+    /** The hover and focus treatments, which inline styles cannot express.
      *
      * Rendered as a React element so unmounting removes it, and written only in
      * theme tokens so both themes follow.
      */
     function PageStyles() {
       const css = [
+        `@keyframes magpie-quota-spin { to { transform: rotate(360deg); } }`,
+        `.magpie-quota-spin { animation: magpie-quota-spin 0.8s linear infinite; }`,
+        `.${BUTTON_CLASS} { transition: background 120ms ease, color 120ms ease; }`,
         `.${BUTTON_CLASS}:hover { background: ${TOKEN.hover}; color: ${TOKEN.text}; }`,
         `.${BUTTON_CLASS}:focus-visible { outline: 2px solid ${TOKEN.focus}; outline-offset: 1px; }`,
         `.${BUTTON_CLASS}[aria-disabled="true"]:hover { background: transparent; color: ${TOKEN.muted}; }`,
+        '.magpie-quota-card { transition: border-color 140ms ease; }',
+        `.magpie-quota-card:hover { border-color: var(--dsw-alias-border-l2, ${TOKEN.border}) !important; }`,
         '.magpie-quota-body { scrollbar-width: thin; }',
       ].join('\n')
       return h('style', { 'data-plugin-css': 'dsh-magpie-quota' }, css)
@@ -726,7 +757,7 @@ window.__ModuleLoader__.load({
             onClick: () => {
               if (!manual) refresh()
             },
-          }, manual ? t('refreshing') : t('refresh'))),
+          }, h(RefreshGlyph, { spin: manual }), manual ? t('refreshing') : t('refresh'))),
         h('div', { style: styles.body, className: 'magpie-quota-body' },
           failed
             ? h('div', { style: styles.banner }, errorText(snapshot.error))

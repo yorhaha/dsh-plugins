@@ -468,7 +468,9 @@ window.__ModuleLoader__.load({
 .dsh-ut-compose-title { flex: 1 1 160px; min-width: 0; height: 32px; padding: 0 8px; border: none; outline: none; background: transparent; font: inherit; font-size: 14px; line-height: 22px; color: var(--dsw-alias-label-primary); }
 .dsh-ut-compose-title::placeholder { color: var(--dsw-alias-label-dimmed); }
 .dsh-ut-date { height: 26px; padding: 0 8px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l4); background: var(--dsw-alias-bg-base); color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; }
-.dsh-ut-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 28px; padding: 0 10px; border: none; border-radius: var(--dsw-radius-sm); background: transparent; color: var(--dsw-alias-label-primary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.dsh-ut-date:focus-visible { outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); outline-offset: 1px; }
+.dsh-ut-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; gap: 4px; height: 28px; padding: 0 10px; border: none; border-radius: var(--dsw-radius-sm); background: transparent; color: var(--dsw-alias-label-primary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; transition: background 120ms ease, color 120ms ease, opacity 120ms ease; }
+.dsh-ut-button:focus-visible, .dsh-ut-pill:focus-visible, .dsh-ut-icon-button:focus-visible, .dsh-ut-placeholder:focus-visible, .dsh-ut-cal-chip:focus-visible, .dsh-ut-row-title:focus-visible { outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); outline-offset: 1px; }
 .dsh-ut-button:disabled { cursor: not-allowed; opacity: 0.4; }
 .dsh-ut-button[data-variant="primary"]:disabled { opacity: 1; }
 .dsh-ut-button[data-variant="outline"] { border: 0.5px solid var(--dsw-alias-border-l3); }
@@ -478,8 +480,8 @@ window.__ModuleLoader__.load({
 .dsh-ut-segment { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 999px; background: var(--dsw-alias-bg-layer-2); }
 .dsh-ut-segment .dsh-ut-button { height: 24px; padding: 0 10px; border-radius: 999px; color: var(--dsw-alias-label-secondary); }
 .dsh-ut-segment .dsh-ut-button[aria-pressed="true"] { background: var(--dsw-alias-bg-layer-1); color: var(--dsw-alias-label-primary); box-shadow: var(--dsw-alias-shadow-s); }
-.dsh-ut-filters { display: inline-flex; align-items: center; gap: 4px; }
-.dsh-ut-pill { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l4); background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.dsh-ut-filters { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.dsh-ut-pill { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l4); background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; transition: background 120ms ease, color 120ms ease; }
 .dsh-ut-pill:hover { background: var(--dsw-alias-interactive-bg-hover); }
 .dsh-ut-pill[aria-pressed="true"] { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-button-ghost-active-fill); box-shadow: inset 0 0 0 1px var(--dsw-alias-button-ghost-active-border); }
 .dsh-ut-pill-count { color: var(--dsw-alias-label-tertiary); font-variant-numeric: tabular-nums; }
@@ -533,11 +535,11 @@ window.__ModuleLoader__.load({
 .dsh-ut-card .dsh-ut-row + .dsh-ut-row { margin-top: 0; }
 .dsh-ut-card .dsh-ut-row:hover, .dsh-ut-card .dsh-ut-row:focus-within { border-color: transparent; background: var(--dsw-alias-interactive-bg-hover); }
 .dsh-ut-compose-meta { display: inline-flex; align-items: center; gap: 8px; }
-.dsh-ut-row { display: flex; padding: 8px 12px; align-items: flex-start; gap: 10px; }
-.dsh-ut-compose { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 20px; padding: 6px 6px 6px 10px; border-radius: 22px; background: var(--dsw-alias-bg-layer-1); border: 0.5px solid var(--dsw-alias-border-l4); }
+.dsh-ut-row { display: flex; padding: 8px 12px; align-items: flex-start; gap: 10px; transition: background 120ms ease; }
+.dsh-ut-compose { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 20px; padding: 6px 6px 6px 10px; border-radius: 22px; background: var(--dsw-alias-bg-layer-1); border: 0.5px solid var(--dsw-alias-border-l4); transition: border-color 140ms ease; }
 .dsh-ut-compose-title { height: 32px; }
 .dsh-ut-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 20px 6px; }
-.dsh-ut-placeholder { height: 26px; padding: 0 10px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l3); background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; }
+.dsh-ut-placeholder { height: 26px; padding: 0 10px; border-radius: 999px; border: 0.5px solid var(--dsw-alias-border-l3); background: transparent; color: var(--dsw-alias-label-secondary); font: inherit; font-size: 12px; line-height: 18px; cursor: pointer; transition: background 120ms ease, color 120ms ease; }
 .dsh-ut-placeholder:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
 .dsh-ut-button[data-variant="primary"] { background: var(--dsw-alias-button-info-fill); color: var(--dsw-alias-label-primary-foreground); font-weight: 500; }
 .dsh-ut-button[data-variant="primary"]:hover:not(:disabled) { background: var(--dsw-alias-button-info-hover); }
@@ -549,12 +551,13 @@ window.__ModuleLoader__.load({
 .dsh-ut-cal-scroll { padding: 0 20px; }
 .dsh-ut-cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-radius: var(--dsw-radius-lg); border: 0.5px solid var(--dsw-alias-border-l4); overflow: hidden; background: var(--dsw-alias-bg-layer-1); }
 .dsh-ut-cal-weekday { padding: 6px 8px; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--dsw-alias-label-tertiary); background: var(--dsw-alias-bg-layer-2); text-align: left; }
-.dsh-ut-cal-cell { min-height: 84px; padding: 4px 4px 6px; border-top: 0.5px solid var(--dsw-alias-border-l1); border-left: 0.5px solid var(--dsw-alias-border-l1); display: flex; flex-direction: column; gap: 2px; align-items: stretch; background: transparent; text-align: left; cursor: pointer; }
+.dsh-ut-cal-cell { min-height: 84px; padding: 4px 4px 6px; border-top: 0.5px solid var(--dsw-alias-border-l1); border-left: 0.5px solid var(--dsw-alias-border-l1); display: flex; flex-direction: column; gap: 2px; align-items: stretch; background: transparent; text-align: left; cursor: pointer; transition: background 120ms ease, box-shadow 120ms ease; }
 .dsh-ut-cal-cell:nth-child(7n + 1) { border-left: none; }
 .dsh-ut-cal-cell:hover { background: var(--dsw-alias-interactive-bg-hover); }
 .dsh-ut-cal-cell[data-outside="true"] { background: var(--dsw-alias-bg-base); }
 .dsh-ut-cal-cell[data-outside="true"] .dsh-ut-cal-day { color: var(--dsw-alias-label-dimmed); }
-.dsh-ut-cal-cell[data-selected="true"] { box-shadow: inset 0 0 0 1.5px var(--dsw-alias-state-business-primary); }
+.dsh-ut-cal-cell[data-today="true"] { background: var(--dsw-alias-bg-layer-2); }
+.dsh-ut-cal-cell[data-selected="true"] { background: var(--dsw-alias-interactive-bg-hover); box-shadow: inset 0 0 0 1.5px var(--dsw-alias-state-business-primary); }
 .dsh-ut-cal-cell:focus-visible { outline: var(--dsw-focus-ring-width) solid var(--dsw-focus-ring-color, var(--dsw-alias-state-business-primary)); outline-offset: -2px; }
 .dsh-ut-cal-day { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 999px; font-size: 11.5px; line-height: 18px; color: var(--dsw-alias-label-secondary); font-variant-numeric: tabular-nums; }
 .dsh-ut-cal-cell[data-today="true"] .dsh-ut-cal-day { background: var(--dsw-alias-brand-primary); color: var(--dsw-alias-label-primary-foreground); font-weight: 600; }
@@ -1040,6 +1043,13 @@ window.__ModuleLoader__.load({
             value: due,
             onChange: event => setDue(event.target.value),
           })),
+        due === '' ? null : h('button', {
+          type: 'button',
+          className: 'dsh-ut-icon-button',
+          title: t('compose.clearDue'),
+          'aria-label': t('compose.clearDue'),
+          onClick: () => { setDue(''); setRule(null) },
+        }, h(Glyph, { name: 'close' })),
         h('label', { className: 'dsh-ut-field' },
           h('span', null, t('edit.allDay')),
           h('span', { className: 'dsh-ut-switch' },
@@ -1352,6 +1362,7 @@ window.__ModuleLoader__.load({
       const [occurrences, setOccurrences] = React.useState([])
       const [agendaError, setAgendaError] = React.useState(null)
       const noticeTimer = React.useRef(null)
+      const draftInputRef = React.useRef(null)
       const alive = React.useRef(true)
 
       React.useEffect(() => {
@@ -1639,6 +1650,7 @@ window.__ModuleLoader__.load({
           : null,
         h('div', { className: 'dsh-ut-compose' },
           h('input', {
+            ref: draftInputRef,
             className: 'dsh-ut-compose-title',
             placeholder: t('compose.placeholder'),
             'aria-label': t('compose.placeholder'),
@@ -1681,7 +1693,18 @@ window.__ModuleLoader__.load({
                   if (draftDue !== '') setDraftDue(next ? draftDue.slice(0, 10) : `${draftDue.slice(0, 10)}T09:00`)
                 },
               }, t('compose.allDay'))
-              : null),
+              : null,
+            draftDue === '' ? null : h('button', {
+              type: 'button',
+              className: 'dsh-ut-icon-button',
+              title: t('compose.clearDue'),
+              'aria-label': t('compose.clearDue'),
+              onClick: () => {
+                setDraftDue('')
+                setDraftAllDay(false)
+                setDatePicking(false)
+              },
+            }, h(Glyph, { name: 'close' }))),
           h('button', {
             type: 'button',
             className: 'dsh-ut-button',
@@ -1756,6 +1779,7 @@ window.__ModuleLoader__.load({
                 setDraftAllDay(true)
                 setDatePicking(true)
                 setView('list')
+                setTimeout(() => draftInputRef.current?.focus(), 0)
               },
             }))
           : h('div', { className: 'dsh-ut-body' },

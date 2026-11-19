@@ -28,6 +28,10 @@ window.__ModuleLoader__.load({
     const en = {
       loading: 'Loading Zhihu status…',
       connectHeading: 'Connection',
+      statusConnected: 'Connected',
+      statusDisconnected: 'Not connected',
+      statusPaused: 'Paused',
+      statusActive: 'Active',
       stateConnected: 'Cookie saved (added {when}).',
       stateDisconnected: 'Not connected. Copy the Cookie header from a signed-in zhihu.com session and paste it below.',
       stateUnusable: 'Stored cookie is unusable: {reason}',
@@ -44,6 +48,8 @@ window.__ModuleLoader__.load({
       verify: 'Verify stored cookie',
       verifying: 'Verifying…',
       disconnect: 'Delete cookie',
+      confirmDisconnect: 'Confirm delete',
+      cancel: 'Cancel',
       disconnecting: 'Deleting…',
       noticeSaved: 'Saved and verified: {name}.',
       noticeVerified: 'Verified: {name}.',
@@ -107,6 +113,10 @@ window.__ModuleLoader__.load({
     const zh = {
       loading: '正在加载状态…',
       connectHeading: '账号连接',
+      statusConnected: '已连接',
+      statusDisconnected: '未连接',
+      statusPaused: '已暂停',
+      statusActive: '正常',
       stateConnected: '已保存 Cookie（添加于 {when}）。',
       stateDisconnected: '尚未配置 Cookie。请在浏览器登录知乎后，复制完整的 Cookie 请求头粘贴至下方。',
       stateUnusable: '已存 Cookie 异常：{reason}',
@@ -123,6 +133,8 @@ window.__ModuleLoader__.load({
       verify: '验证已保存的 Cookie',
       verifying: '正在验证…',
       disconnect: '删除 Cookie',
+      confirmDisconnect: '确认删除',
+      cancel: '取消',
       disconnecting: '正在删除…',
       noticeSaved: '验证成功并已保存：{name}。',
       noticeVerified: '验证通过：{name}。',
@@ -198,66 +210,123 @@ window.__ModuleLoader__.load({
       return KNOWN_ERRORS.has(code) ? t(`errors.${code}`) : t('errors.unknown', { code })
     }
 
-    const styles = {
-      page: { padding: '4px 2px 32px', color: 'var(--dsw-alias-label-primary)', maxWidth: '760px' },
-      card: {
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-2)',
-        borderRadius: '10px',
-        padding: '14px 16px',
-        marginBottom: '14px',
-      },
-      cardTitle: { fontSize: '14px', fontWeight: 600, margin: '0 0 8px' },
-      line: { fontSize: '13px', lineHeight: 1.6, margin: '0 0 6px' },
-      caption: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-caption)' },
-      warn: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-warn-label)' },
-      ok: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-success-primary)' },
-      row: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      fieldLabel: { display: 'block', fontSize: '13px', margin: '12px 0 6px' },
-      textarea: {
-        width: '100%',
-        boxSizing: 'border-box',
-        minHeight: '74px',
-        resize: 'vertical',
-        fontSize: '12px',
-        lineHeight: 1.5,
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-        padding: '8px 10px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-bg-layer-1)',
-        color: 'var(--dsw-alias-label-primary)',
-      },
-      button: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-button-elevated-fill)',
-        color: 'var(--dsw-alias-label-primary)',
-        cursor: 'pointer',
-      },
-      primaryButton: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: 'none',
-        background: 'var(--dsw-alias-button-primary-fill)',
-        color: 'var(--dsw-alias-label-primary-foreground)',
-        cursor: 'pointer',
-      },
-      disabled: { opacity: 0.5, cursor: 'default' },
-      list: { margin: '8px 0 0', padding: 0, listStyle: 'none' },
-      listItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '12px',
-        fontSize: '13px',
-        lineHeight: 1.9,
-        borderTop: '1px solid var(--dsw-alias-border-l4)',
-        paddingTop: '2px',
-      },
-    }
+    const CSS = `
+@keyframes dsh-zh-spin { to { transform: rotate(360deg); } }
+.dsh-zh-page { padding: 4px 2px 32px; color: var(--dsw-alias-label-primary); max-width: 760px; }
+.dsh-zh-card {
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.dsh-zh-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
+}
+.dsh-zh-card-title { font-size: 14px; font-weight: 600; margin: 0; }
+.dsh-zh-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px; font-size: 11.5px; line-height: 17px; font-weight: 500;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.14));
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-zh-badge[data-tone="ok"] {
+  background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l4);
+  color: var(--dsw-alias-state-success-primary);
+}
+.dsh-zh-badge[data-tone="warn"] {
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.12));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-zh-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+.dsh-zh-line { font-size: 13px; line-height: 1.6; margin: 0 0 6px; }
+.dsh-zh-caption { font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-caption); margin: 4px 0 0; }
+.dsh-zh-account-box {
+  padding: 10px 12px; border-radius: 9px; margin: 8px 0 2px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l4);
+}
+.dsh-zh-alert {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 9px 12px; border-radius: 8px; margin-top: 10px;
+  font-size: 12.5px; line-height: 1.55;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-zh-alert[data-tone="ok"] { color: var(--dsw-alias-state-success-primary); }
+.dsh-zh-alert[data-tone="warn"] {
+  border-color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.1));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-zh-field-label { display: block; font-size: 12.5px; font-weight: 500; margin: 12px 0 6px; }
+.dsh-zh-textarea {
+  width: 100%; box-sizing: border-box; min-height: 76px; resize: vertical;
+  font-size: 12px; line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 9px 11px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  transition: border-color 120ms ease;
+}
+.dsh-zh-textarea:focus { outline: none; border-color: var(--dsw-alias-brand-primary, #2f6feb); }
+.dsh-zh-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.dsh-zh-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 12.5px; font-weight: 500; padding: 6px 13px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-button-elevated-fill);
+  color: var(--dsw-alias-label-primary);
+  cursor: pointer; transition: background 120ms ease, opacity 120ms ease;
+}
+.dsh-zh-btn:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-zh-btn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, #2f6feb); outline-offset: 1px; }
+.dsh-zh-btn[data-variant="primary"] {
+  border-color: transparent;
+  background: var(--dsw-alias-button-primary-fill);
+  color: var(--dsw-alias-label-primary-foreground);
+}
+.dsh-zh-btn[data-variant="primary"]:hover:not(:disabled) { opacity: 0.9; }
+.dsh-zh-btn[data-variant="danger"] {
+  border-color: var(--dsw-alias-state-error-primary);
+  background: transparent;
+  color: var(--dsw-alias-state-error-primary);
+}
+.dsh-zh-btn[data-variant="danger"]:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(192,57,43,.12));
+}
+.dsh-zh-btn:disabled { opacity: 0.45; cursor: default; }
+.dsh-zh-spinner {
+  width: 12px; height: 12px; border-radius: 999px;
+  border: 1.8px solid currentColor; border-top-color: transparent;
+  animation: dsh-zh-spin 0.7s linear infinite; flex: none;
+}
+.dsh-zh-meter {
+  padding: 10px 12px; border-radius: 9px; margin-bottom: 10px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l4);
+}
+.dsh-zh-meter-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12.5px; }
+.dsh-zh-meter-stat { font-size: 12px; color: var(--dsw-alias-label-caption); font-variant-numeric: tabular-nums; }
+.dsh-zh-track {
+  height: 5px; margin-top: 7px; border-radius: 999px; overflow: hidden;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.18));
+}
+.dsh-zh-fill { height: 100%; border-radius: 999px; transition: width 280ms ease; }
+.dsh-zh-list { margin: 4px 0 0; padding: 0; list-style: none; }
+.dsh-zh-list-item {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  font-size: 13px; padding: 7px 0;
+  border-top: 1px solid var(--dsw-alias-border-l1, var(--dsw-alias-border-l4));
+}
+.dsh-zh-list-item:first-child { border-top: none; padding-top: 2px; }
+.dsh-zh-list-value {
+  font-size: 12px; color: var(--dsw-alias-label-caption);
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right;
+}
+`
 
     /**
      * Call one Host action.
@@ -318,22 +387,20 @@ window.__ModuleLoader__.load({
       return ms >= 60_000 ? t('minutes', { count: Math.round(ms / 60_000) }) : t('seconds', { count: Math.round(ms / 1_000) })
     }
 
-    /** One button that disables itself while its action runs. */
+    /** One button that disables itself and shows a spinner while its action runs. */
     function Action(props) {
-      const { label, onClick, busy, primary, disabled } = props
+      const { label, onClick, busy, primary, danger, disabled } = props
       const inactive = busy === true || disabled === true
       return h(
         'button',
         {
           type: 'button',
-          style: inactive
-            ? { ...(primary ? styles.primaryButton : styles.button), ...styles.disabled }
-            : primary
-              ? styles.primaryButton
-              : styles.button,
+          className: 'dsh-zh-btn',
+          'data-variant': danger ? 'danger' : primary ? 'primary' : undefined,
           disabled: inactive,
           onClick,
         },
+        busy === true ? h('span', { className: 'dsh-zh-spinner', 'aria-hidden': true }) : null,
         label,
       )
     }
@@ -342,9 +409,9 @@ window.__ModuleLoader__.load({
     function ConfigRow(props) {
       return h(
         'li',
-        { style: styles.listItem },
+        { className: 'dsh-zh-list-item' },
         h('span', null, props.label),
-        h('span', { style: styles.caption }, props.value),
+        h('span', { className: 'dsh-zh-list-value' }, props.value),
       )
     }
 
@@ -358,6 +425,34 @@ window.__ModuleLoader__.load({
       return account.name !== '' ? account.name : (account.url_token ?? '')
     }
 
+    /** Visual meter for hourly request budget. */
+    function BudgetMeter(props) {
+      const { label, stat, used, limit } = props
+      const ratio = typeof limit === 'number' && limit > 0 ? Math.min(1, Math.max(0, used / limit)) : 0
+      const pct = ratio * 100
+      const color =
+        pct >= 90
+          ? 'var(--dsw-alias-state-error-primary, #c0392b)'
+          : pct >= 70
+            ? 'var(--dsw-alias-state-warn-primary, #b8791a)'
+            : 'var(--dsw-alias-state-success-primary, #1f8f5f)'
+      return h(
+        'div',
+        { className: 'dsh-zh-meter' },
+        h(
+          'div',
+          { className: 'dsh-zh-meter-head' },
+          h('span', null, label),
+          h('span', { className: 'dsh-zh-meter-stat' }, stat),
+        ),
+        h(
+          'div',
+          { className: 'dsh-zh-track', 'aria-hidden': true },
+          h('div', { className: 'dsh-zh-fill', style: { width: `${pct}%`, background: color } }),
+        ),
+      )
+    }
+
     /**
      * The settings section.
      * @param {object} props - Slot props, carrying the locale `t` seat.
@@ -369,6 +464,7 @@ window.__ModuleLoader__.load({
       const [failure, setFailure] = React.useState(null)
       const [busy, setBusy] = React.useState(null)
       const [draft, setDraft] = React.useState('')
+      const [confirmDisconnect, setConfirmDisconnect] = React.useState(false)
       const [notice, setNotice] = React.useState(null)
 
       const refresh = React.useCallback(async () => {
@@ -409,6 +505,7 @@ window.__ModuleLoader__.load({
           const value = await call(action, body)
           setStatus(value.status ?? (await call('status')))
           setNotice(done(value))
+          setConfirmDisconnect(false)
         } catch (error) {
           setFailure(error)
         } finally {
@@ -419,57 +516,80 @@ window.__ModuleLoader__.load({
       if (status === null) {
         return h(
           'div',
-          { style: styles.page },
-          h('p', { style: styles.caption }, t('loading')),
-          failure === null ? null : h('p', { style: styles.warn }, errorText(t, failure.code)),
+          { className: 'dsh-zh-page' },
+          h('style', { 'data-plugin-css': 'dsh-zhihu' }, CSS),
+          h('p', { className: 'dsh-zh-caption' }, t('loading')),
+          failure === null
+            ? null
+            : h('div', { className: 'dsh-zh-alert', 'data-tone': 'warn', role: 'alert' }, errorText(t, failure.code)),
         )
       }
 
       const account = status.account
       const stats = status.stats
       const config = status.config
+      const paused = stats.paused_until !== null && stats.paused_until !== undefined
+
       return h(
         'div',
-        { style: styles.page },
+        { className: 'dsh-zh-page' },
+        h('style', { 'data-plugin-css': 'dsh-zhihu' }, CSS),
 
         // Connection
         h(
           'section',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('connectHeading')),
+          { className: 'dsh-zh-card' },
+          h(
+            'div',
+            { className: 'dsh-zh-card-head' },
+            h('h2', { className: 'dsh-zh-card-title' }, t('connectHeading')),
+            h(
+              'span',
+              {
+                className: 'dsh-zh-badge',
+                'data-tone': status.connected ? 'ok' : 'warn',
+              },
+              h('span', { className: 'dsh-zh-dot', 'aria-hidden': true }),
+              status.connected ? t('statusConnected') : t('statusDisconnected'),
+            ),
+          ),
           h(
             'p',
-            { style: status.connected ? styles.line : styles.warn },
+            { className: status.connected ? 'dsh-zh-line' : 'dsh-zh-caption' },
             status.connected
               ? t('stateConnected', { when: when(status.saved_at) || t('none') })
               : t('stateDisconnected'),
           ),
           status.cookie_error === null || status.cookie_error === undefined
             ? null
-            : h('p', { style: styles.warn }, t('stateUnusable', { reason: status.cookie_error })),
+            : h('div', { className: 'dsh-zh-alert', 'data-tone': 'warn', role: 'alert' }, t('stateUnusable', { reason: status.cookie_error })),
           h(
-            'p',
-            { style: styles.line },
-            account === null || account === undefined
-              ? t('accountUnknown')
-              : `${t('accountHeading')}: ${accountName(account)}${account.headline === '' || account.headline === undefined ? '' : ` · ${account.headline}`}${account.url_token === '' || account.url_token === undefined ? '' : ` · ${account.url_token}`}`,
+            'div',
+            { className: 'dsh-zh-account-box' },
+            h(
+              'p',
+              { className: 'dsh-zh-line', style: { margin: 0 } },
+              account === null || account === undefined
+                ? t('accountUnknown')
+                : `${t('accountHeading')}: ${accountName(account)}${account.headline === '' || account.headline === undefined ? '' : ` · ${account.headline}`}${account.url_token === '' || account.url_token === undefined ? '' : ` · ${account.url_token}`}`,
+            ),
+            account === null || account === undefined || status.verified_at === null
+              ? null
+              : h('p', { className: 'dsh-zh-caption', style: { marginTop: '2px' } }, t('accountVerified', { when: when(status.verified_at) })),
           ),
-          account === null || account === undefined || status.verified_at === null
-            ? null
-            : h('p', { style: styles.caption }, t('accountVerified', { when: when(status.verified_at) })),
-          h('label', { style: styles.fieldLabel }, t('cookieLabel')),
+          h('label', { className: 'dsh-zh-field-label' }, t('cookieLabel')),
           h('textarea', {
-            style: styles.textarea,
+            className: 'dsh-zh-textarea',
             spellCheck: false,
             autoComplete: 'off',
             placeholder: t('cookiePlaceholder'),
             value: draft,
             onChange: (event) => setDraft(event.target.value),
           }),
-          h('p', { style: styles.caption }, t('cookieHint')),
+          h('p', { className: 'dsh-zh-caption' }, t('cookieHint')),
           h(
             'div',
-            { style: styles.row },
+            { className: 'dsh-zh-row' },
             h(Action, {
               label: busy === 'connect' ? t('saving') : t('saveConnect'),
               busy: busy === 'connect',
@@ -493,42 +613,70 @@ window.__ModuleLoader__.load({
               onClick: () =>
                 void run('verify', undefined, (value) => t('noticeVerified', { name: accountName(value.account) })),
             }),
-            h(Action, {
-              label: busy === 'disconnect' ? t('disconnecting') : t('disconnect'),
-              busy: busy === 'disconnect',
-              disabled: busy !== null || !status.connected,
-              onClick: () => void run('disconnect', undefined, () => t('noticeDisconnected')),
-            }),
+            confirmDisconnect
+              ? h(
+                  React.Fragment,
+                  null,
+                  h(Action, {
+                    label: busy === 'disconnect' ? t('disconnecting') : t('confirmDisconnect'),
+                    busy: busy === 'disconnect',
+                    danger: true,
+                    disabled: busy !== null || !status.connected,
+                    onClick: () => void run('disconnect', undefined, () => t('noticeDisconnected')),
+                  }),
+                  h(Action, {
+                    label: t('cancel'),
+                    disabled: busy !== null,
+                    onClick: () => setConfirmDisconnect(false),
+                  }),
+                )
+              : h(Action, {
+                  label: t('disconnect'),
+                  disabled: busy !== null || !status.connected,
+                  onClick: () => setConfirmDisconnect(true),
+                }),
           ),
-          notice === null ? null : h('p', { style: styles.ok }, notice),
+          notice === null ? null : h('div', { className: 'dsh-zh-alert', 'data-tone': 'ok' }, notice),
           failure === null
             ? null
             : h(
                 'div',
-                null,
-                h('p', { style: styles.warn }, errorText(t, failure.code)),
+                { className: 'dsh-zh-alert', 'data-tone': 'warn', role: 'alert' },
+                h('span', null, errorText(t, failure.code)),
                 failure.retryAt === undefined || failure.retryAt === null
                   ? null
-                  : h('p', { style: styles.caption }, t('errorRetryAt', { when: when(failure.retryAt) })),
+                  : h('span', { className: 'dsh-zh-caption', style: { margin: 0, color: 'inherit', opacity: 0.9 } }, t('errorRetryAt', { when: when(failure.retryAt) })),
               ),
         ),
 
         // Pacing
         h(
           'section',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('pacingHeading')),
+          { className: 'dsh-zh-card' },
+          h(
+            'div',
+            { className: 'dsh-zh-card-head' },
+            h('h2', { className: 'dsh-zh-card-title' }, t('pacingHeading')),
+            h(
+              'span',
+              { className: 'dsh-zh-badge', 'data-tone': paused ? 'warn' : 'ok' },
+              h('span', { className: 'dsh-zh-dot', 'aria-hidden': true }),
+              paused ? t('statusPaused') : t('statusActive'),
+            ),
+          ),
+          h(BudgetMeter, {
+            label: t('pacingUsed'),
+            stat: t('pacingUsedOf', {
+              used: stats.requests_last_hour,
+              limit: stats.hourly_budget,
+            }),
+            used: stats.requests_last_hour,
+            limit: stats.hourly_budget,
+          }),
           h(
             'ul',
-            { style: styles.list },
+            { className: 'dsh-zh-list' },
             h(ConfigRow, { label: t('pacingInterval'), value: durationText(t, config.minIntervalMs) }),
-            h(ConfigRow, {
-              label: t('pacingUsed'),
-              value: t('pacingUsedOf', {
-                used: stats.requests_last_hour,
-                limit: stats.hourly_budget,
-              }),
-            }),
             h(ConfigRow, {
               label: t('pacingReset'),
               value: stats.budget_reset_at === null ? t('none') : when(stats.budget_reset_at),
@@ -550,17 +698,21 @@ window.__ModuleLoader__.load({
               value: stats.last_request_at === null ? t('none') : when(stats.last_request_at),
             }),
           ),
-          h('p', { style: styles.caption }, t('pacingNote')),
+          h('p', { className: 'dsh-zh-caption', style: { marginTop: '10px' } }, t('pacingNote')),
         ),
 
         // Limits
         h(
           'section',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('limitsHeading')),
+          { className: 'dsh-zh-card' },
+          h(
+            'div',
+            { className: 'dsh-zh-card-head' },
+            h('h2', { className: 'dsh-zh-card-title' }, t('limitsHeading')),
+          ),
           h(
             'ul',
-            { style: styles.list },
+            { className: 'dsh-zh-list' },
             h(ConfigRow, { label: t('limitsContent'), value: t('limitsChars', { count: config.contentChars }) }),
             h(ConfigRow, {
               label: t('limitsList'),
@@ -581,7 +733,7 @@ window.__ModuleLoader__.load({
               }),
             }),
           ),
-          h('p', { style: styles.caption }, t('limitsNote')),
+          h('p', { className: 'dsh-zh-caption', style: { marginTop: '10px' } }, t('limitsNote')),
         ),
       )
     }

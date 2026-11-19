@@ -119,59 +119,106 @@ window.__ModuleLoader__.load({
         'datasets.self_dynamic': '我的动态',
     }
 
-    const styles = {
-      page: { padding: '4px 2px 32px', color: 'var(--dsw-alias-label-primary)', maxWidth: '720px' },
-      card: {
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-2)',
-        borderRadius: '10px',
-        padding: '14px 16px',
-        marginBottom: '14px',
-      },
-      cardTitle: { fontSize: '14px', fontWeight: 600, margin: '0 0 8px' },
-      line: { fontSize: '13px', lineHeight: 1.6, margin: '0 0 6px' },
-      caption: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-caption)' },
-      warn: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-warn-label)' },
-      row: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      button: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-button-elevated-fill)',
-        color: 'var(--dsw-alias-label-primary)',
-        cursor: 'pointer',
-      },
-      primaryButton: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: 'none',
-        background: 'var(--dsw-alias-button-primary-fill)',
-        color: 'var(--dsw-alias-label-primary-foreground)',
-        cursor: 'pointer',
-      },
-      disabled: { opacity: 0.5, cursor: 'default' },
-      qr: {
-        display: 'block',
-        width: '220px',
-        height: '220px',
-        marginTop: '10px',
-        borderRadius: '8px',
-        background: '#ffffff',
-      },
-      list: { margin: '8px 0 0', padding: 0, listStyle: 'none' },
-      listItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '12px',
-        fontSize: '13px',
-        lineHeight: 1.9,
-        borderTop: '1px solid var(--dsw-alias-border-l4)',
-        paddingTop: '2px',
-      },
-      mono: { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '12px' },
-    }
+    const CSS = `
+@keyframes dsh-bili-spin { to { transform: rotate(360deg); } }
+.dsh-bili-page { padding: 4px 2px 32px; color: var(--dsw-alias-label-primary); max-width: 740px; }
+.dsh-bili-card {
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.dsh-bili-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
+}
+.dsh-bili-card-title { font-size: 14px; font-weight: 600; margin: 0; }
+.dsh-bili-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px; font-size: 11.5px; line-height: 17px; font-weight: 500;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.14));
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-bili-badge[data-tone="ok"] {
+  background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l4);
+  color: var(--dsw-alias-state-success-primary);
+}
+.dsh-bili-badge[data-tone="warn"] {
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.12));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-bili-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+.dsh-bili-line { font-size: 13px; line-height: 1.6; margin: 0 0 6px; }
+.dsh-bili-caption { font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-caption); margin: 4px 0 0; }
+.dsh-bili-alert {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px; border-radius: 8px; margin: 8px 0;
+  font-size: 12.5px; line-height: 1.55;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-bili-alert[data-tone="warn"] {
+  border-color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.1));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-bili-alert[data-tone="ok"] { color: var(--dsw-alias-state-success-primary); }
+.dsh-bili-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.dsh-bili-check {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; color: var(--dsw-alias-label-secondary); cursor: pointer; user-select: none;
+}
+.dsh-bili-check input { width: 15px; height: 15px; accent-color: var(--dsw-alias-brand-primary, #2f6feb); cursor: pointer; }
+.dsh-bili-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 12.5px; font-weight: 500; padding: 6px 13px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-button-elevated-fill);
+  color: var(--dsw-alias-label-primary);
+  cursor: pointer; transition: background 120ms ease, opacity 120ms ease;
+}
+.dsh-bili-btn:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-bili-btn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, #2f6feb); outline-offset: 1px; }
+.dsh-bili-btn[data-variant="primary"] {
+  border-color: transparent;
+  background: var(--dsw-alias-button-primary-fill);
+  color: var(--dsw-alias-label-primary-foreground);
+}
+.dsh-bili-btn[data-variant="primary"]:hover:not(:disabled) { opacity: 0.9; }
+.dsh-bili-btn:disabled { opacity: 0.45; cursor: default; }
+.dsh-bili-spinner {
+  width: 12px; height: 12px; border-radius: 999px;
+  border: 1.8px solid currentColor; border-top-color: transparent;
+  animation: dsh-bili-spin 0.7s linear infinite; flex: none;
+}
+.dsh-bili-qr-box {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 8px;
+  margin-top: 8px; padding: 14px; border-radius: 12px;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-bili-qr-frame {
+  padding: 8px; border-radius: 10px; background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+.dsh-bili-qr { display: block; width: 196px; height: 196px; border-radius: 4px; }
+.dsh-bili-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+  word-break: break-all; margin: 4px 0 0; color: var(--dsw-alias-label-secondary);
+}
+.dsh-bili-list { margin: 8px 0 0; padding: 0; list-style: none; }
+.dsh-bili-list-item {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-size: 13px; padding: 8px 0;
+  border-top: 1px solid var(--dsw-alias-border-l1, var(--dsw-alias-border-l4));
+}
+.dsh-bili-list-item:first-child { border-top: none; padding-top: 2px; }
+.dsh-bili-list-meta { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dsh-bili-count {
+  font-size: 12px; color: var(--dsw-alias-label-caption); font-variant-numeric: tabular-nums;
+}
+`
 
     /**
      * Call one Host action.
@@ -231,27 +278,35 @@ window.__ModuleLoader__.load({
     function DatasetRow(props) {
       const { t, entry } = props
       const label = t(`datasets.${entry.dataset}`)
-      const state =
-        entry.count === 0 && entry.lastSuccessAt === null
-          ? t('pending')
-          : `${t('items', { count: entry.count })} · ${
-              entry.lastErrorCode !== null
-                ? t('failedRun', { code: entry.lastErrorCode })
-                : entry.snapshotComplete === true
-                  ? t('complete')
-                  : entry.snapshotComplete === false
-                    ? t('partial')
-                    : when(entry.lastSuccessAt)
-            }`
+      const unstarted = entry.count === 0 && entry.lastSuccessAt === null
+      const stateTone = entry.lastErrorCode !== null
+        ? 'warn'
+        : entry.snapshotComplete === true
+          ? 'ok'
+          : 'neutral'
+      const stateLabel = unstarted
+        ? t('pending')
+        : entry.lastErrorCode !== null
+          ? t('failedRun', { code: entry.lastErrorCode })
+          : entry.snapshotComplete === true
+            ? t('complete')
+            : entry.snapshotComplete === false
+              ? t('partial')
+              : when(entry.lastSuccessAt)
       return h(
         'li',
-        { style: styles.listItem },
+        { className: 'dsh-bili-list-item' },
         h('span', null, label),
-        h('span', { style: styles.caption }, state),
+        h(
+          'span',
+          { className: 'dsh-bili-list-meta' },
+          unstarted ? null : h('span', { className: 'dsh-bili-count' }, t('items', { count: entry.count })),
+          h('span', { className: 'dsh-bili-badge', 'data-tone': stateTone }, stateLabel),
+        ),
       )
     }
 
-    /** One button that disables itself while its action runs. */
+    /** One button that disables itself and shows a spinner while its action runs. */
     function Action(props) {
       const { label, onClick, busy, primary, disabled } = props
       const inactive = busy === true || disabled === true
@@ -259,14 +314,12 @@ window.__ModuleLoader__.load({
         'button',
         {
           type: 'button',
-          style: inactive
-            ? { ...(primary ? styles.primaryButton : styles.button), ...styles.disabled }
-            : primary
-              ? styles.primaryButton
-              : styles.button,
+          className: 'dsh-bili-btn',
+          'data-variant': primary ? 'primary' : undefined,
           disabled: inactive,
           onClick,
         },
+        busy === true ? h('span', { className: 'dsh-bili-spinner', 'aria-hidden': true }) : null,
         label,
       )
     }
@@ -373,35 +426,49 @@ window.__ModuleLoader__.load({
 
       const accountBody = []
       if (login !== null && login.state !== 'confirmed') {
-        accountBody.push(h('p', { key: 'hint', style: styles.line }, t('scanHint')))
-        if (login.qrImage !== null) {
-          accountBody.push(h('img', { key: 'qr', src: login.qrImage, alt: '', style: styles.qr }))
-        } else if (login.url !== null) {
-          accountBody.push(h('p', { key: 'fallback', style: styles.line }, t('urlFallback')))
-          accountBody.push(h('p', { key: 'url', style: styles.mono }, login.url))
-        }
+        accountBody.push(h('p', { key: 'hint', className: 'dsh-bili-line' }, t('scanHint')))
         const stateText = {
           waiting: t('waiting'),
           scanned: t('scanned'),
           expired: t('expired'),
           failed: t('failed'),
         }[login.state]
-        if (stateText !== undefined) {
-          accountBody.push(h('p', { key: 'state', style: styles.caption }, stateText))
+        if (login.qrImage !== null) {
+          accountBody.push(
+            h(
+              'div',
+              { key: 'qr-box', className: 'dsh-bili-qr-box' },
+              h('div', { className: 'dsh-bili-qr-frame' },
+                h('img', { src: login.qrImage, alt: '', className: 'dsh-bili-qr' })),
+              stateText === undefined
+                ? null
+                : h('span', { className: 'dsh-bili-badge', 'data-tone': login.state === 'expired' || login.state === 'failed' ? 'warn' : 'neutral' }, stateText),
+            ),
+          )
+        } else if (login.url !== null) {
+          accountBody.push(h('p', { key: 'fallback', className: 'dsh-bili-line' }, t('urlFallback')))
+          accountBody.push(h('p', { key: 'url', className: 'dsh-bili-mono' }, login.url))
+          if (stateText !== undefined) {
+            accountBody.push(h('p', { key: 'state', className: 'dsh-bili-caption' }, stateText))
+          }
+        } else if (stateText !== undefined) {
+          accountBody.push(h('p', { key: 'state', className: 'dsh-bili-caption' }, stateText))
         }
         accountBody.push(
           h(
             'div',
-            { key: 'actions', style: styles.row },
+            { key: 'actions', className: 'dsh-bili-row' },
             h(Action, { label: t('cancel'), onClick: cancelLogin, busy: busy === 'cancel' }),
           ),
         )
       } else if (login !== null && login.state === 'confirmed') {
-        accountBody.push(h('p', { key: 'ok', style: styles.line }, t('confirmed')))
+        accountBody.push(
+          h('div', { key: 'ok', className: 'dsh-bili-alert', 'data-tone': 'ok' }, t('confirmed')),
+        )
       } else if (status === null) {
         // Nothing is loaded yet, so nothing is known about the account. Claiming
         // it is signed out would be a statement the page cannot support.
-        accountBody.push(h('p', { key: 'unknown', style: styles.caption }, t('loading')))
+        accountBody.push(h('p', { key: 'unknown', className: 'dsh-bili-caption' }, t('loading')))
       } else if (status.authorized === true) {
         // Authorization, not the stored account record, is what makes a capture
         // possible: the record carries a display name that only a capture can
@@ -409,7 +476,7 @@ window.__ModuleLoader__.load({
         accountBody.push(
           h(
             'p',
-            { key: 'who', style: styles.line },
+            { key: 'who', className: 'dsh-bili-line' },
             account === null
               ? t('signedIn')
               : account.name === null
@@ -420,16 +487,16 @@ window.__ModuleLoader__.load({
         accountBody.push(
           h(
             'div',
-            { key: 'actions', style: styles.row },
+            { key: 'actions', className: 'dsh-bili-row' },
             h(Action, { label: t('signOut'), onClick: signOut, busy: busy === 'signout' }),
           ),
         )
       } else {
-        accountBody.push(h('p', { key: 'out', style: styles.line }, t('signedOut')))
+        accountBody.push(h('p', { key: 'out', className: 'dsh-bili-line' }, t('signedOut')))
         accountBody.push(
           h(
             'div',
-            { key: 'actions', style: styles.row },
+            { key: 'actions', className: 'dsh-bili-row' },
             h(Action, { label: t('signIn'), onClick: signIn, busy: busy === 'login', primary: true }),
           ),
         )
@@ -437,38 +504,40 @@ window.__ModuleLoader__.load({
 
       const dataBody = []
       if (status === null) {
-        dataBody.push(h('p', { key: 'unknown', style: styles.caption }, t('loading')))
+        dataBody.push(h('p', { key: 'unknown', className: 'dsh-bili-caption' }, t('loading')))
       } else if (sync !== null) {
         dataBody.push(
           h(
             'p',
-            { key: 'when', style: styles.line },
+            { key: 'when', className: 'dsh-bili-line' },
             sync.lastRunAt === null ? t('never') : t('lastRunAt', { when: when(sync.lastRunAt) }),
           ),
         )
         if (sync.authRequired === true) {
-          dataBody.push(h('p', { key: 'auth', style: styles.warn }, t('authRequired')))
+          dataBody.push(h('div', { key: 'auth', className: 'dsh-bili-alert', 'data-tone': 'warn' }, t('authRequired')))
         } else if (sync.retryNotBefore !== null && sync.retryNotBefore !== undefined) {
           dataBody.push(
-            h('p', { key: 'retry', style: styles.warn }, t('retryAt', { when: when(sync.retryNotBefore) })),
+            h('div', { key: 'retry', className: 'dsh-bili-alert', 'data-tone': 'warn' }, t('retryAt', { when: when(sync.retryNotBefore) })),
           )
         } else if (sync.running === true) {
           dataBody.push(
-            h('p', { key: 'run', style: styles.line }, sync.progress?.message ?? t('running')),
+            h('div', { key: 'run', className: 'dsh-bili-alert' },
+              h('span', { className: 'dsh-bili-spinner', 'aria-hidden': true }),
+              sync.progress?.message ?? t('running')),
           )
         } else if (sync.lastErrorCode !== null) {
           dataBody.push(
-            h('p', { key: 'err', style: styles.warn }, t('failedRun', { code: sync.lastErrorCode })),
+            h('div', { key: 'err', className: 'dsh-bili-alert', 'data-tone': 'warn' }, t('failedRun', { code: sync.lastErrorCode })),
           )
         } else if (sync.stale === true) {
-          dataBody.push(h('p', { key: 'stale', style: styles.warn }, t('stale')))
+          dataBody.push(h('div', { key: 'stale', className: 'dsh-bili-alert', 'data-tone': 'warn' }, t('stale')))
         }
       }
       if (status !== null) {
         dataBody.push(
           h(
             'ul',
-            { key: 'list', style: styles.list },
+            { key: 'list', className: 'dsh-bili-list' },
             status.datasets.map((entry) =>
               h(DatasetRow, { key: entry.dataset, t, entry }),
             ),
@@ -478,7 +547,7 @@ window.__ModuleLoader__.load({
       dataBody.push(
         h(
           'div',
-          { key: 'actions', style: styles.row },
+          { key: 'actions', className: 'dsh-bili-row' },
           h(Action, {
             label: t('syncNow'),
             onClick: capture,
@@ -488,28 +557,28 @@ window.__ModuleLoader__.load({
           }),
           h(
             'label',
-            { style: styles.caption },
+            { className: 'dsh-bili-check' },
             h('input', {
               type: 'checkbox',
               checked: backfill,
               onChange: (event) => setBackfill(event.target.checked),
             }),
-            ` ${t('backfill')}`,
+            t('backfill'),
           ),
         ),
       )
 
       const scheduleBody = []
       if (status === null) {
-        scheduleBody.push(h('p', { key: 'unknown', style: styles.caption }, t('loading')))
+        scheduleBody.push(h('p', { key: 'unknown', className: 'dsh-bili-caption' }, t('loading')))
       } else if (schedule !== null && schedule.available === false) {
-        scheduleBody.push(h('p', { key: 'na', style: styles.line }, t('scheduleUnavailable')))
+        scheduleBody.push(h('p', { key: 'na', className: 'dsh-bili-line' }, t('scheduleUnavailable')))
       } else if (schedule !== null) {
         const first = schedule.tasks[0]
         scheduleBody.push(
           h(
             'p',
-            { key: 'state', style: styles.line },
+            { key: 'state', className: 'dsh-bili-line' },
             first === undefined
               ? t('scheduleMissing')
               : schedule.active
@@ -520,7 +589,7 @@ window.__ModuleLoader__.load({
         scheduleBody.push(
           h(
             'div',
-            { key: 'actions', style: styles.row },
+            { key: 'actions', className: 'dsh-bili-row' },
             h(Action, {
               label: first === undefined ? t('setUp') : t('recreate'),
               onClick: () =>
@@ -538,19 +607,39 @@ window.__ModuleLoader__.load({
       // the bundle's locale metadata, so this renders its cards only.
       return h(
         'div',
-        { style: styles.page },
-        error === null ? null : h('p', { style: styles.warn }, t('loadFailed', { code: error })),
+        { className: 'dsh-bili-page' },
+        h('style', { 'data-plugin-css': 'dsh-bilibili' }, CSS),
+        error === null
+          ? null
+          : h('p', { className: 'dsh-bili-alert', 'data-tone': 'warn' }, t('loadFailed', { code: error })),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('accountHeading')),
+          { className: 'dsh-bili-card' },
+          h(
+            'div',
+            { className: 'dsh-bili-card-head' },
+            h('h2', { className: 'dsh-bili-card-title' }, t('accountHeading')),
+          ),
           ...accountBody,
         ),
-        h('div', { style: styles.card }, h('h2', { style: styles.cardTitle }, t('dataHeading')), ...dataBody),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('scheduleHeading')),
+          { className: 'dsh-bili-card' },
+          h(
+            'div',
+            { className: 'dsh-bili-card-head' },
+            h('h2', { className: 'dsh-bili-card-title' }, t('dataHeading')),
+          ),
+          ...dataBody,
+        ),
+        h(
+          'div',
+          { className: 'dsh-bili-card' },
+          h(
+            'div',
+            { className: 'dsh-bili-card-head' },
+            h('h2', { className: 'dsh-bili-card-title' }, t('scheduleHeading')),
+          ),
           ...scheduleBody,
         ),
       )

@@ -21,6 +21,10 @@ window.__ModuleLoader__.load({
     const en = {
       loading: 'Loading Xiaohongshu status…',
       connectHeading: 'Connection',
+      statusConnected: 'Connected',
+      statusDisconnected: 'Not connected',
+      statusPaused: 'Paused',
+      statusActive: 'Active',
       stateConnected: 'Cookie saved (added {when}).',
       stateDisconnected: 'Not connected. Copy the Cookie header from a signed-in xiaohongshu.com session and paste it below.',
       stateUnusable: 'Stored cookie is unusable: {reason}',
@@ -34,6 +38,8 @@ window.__ModuleLoader__.load({
       saveConnect: 'Save & Verify',
       saving: 'Verifying…',
       disconnect: 'Delete cookie',
+      confirmDisconnect: 'Confirm delete',
+      cancel: 'Cancel',
       disconnecting: 'Deleting…',
       noticeSaved: 'Saved and verified: {name}.',
       noticeDisconnected: 'Cookie deleted.',
@@ -113,6 +119,10 @@ window.__ModuleLoader__.load({
     const zh = {
       loading: '正在加载状态…',
       connectHeading: '账号连接',
+      statusConnected: '已连接',
+      statusDisconnected: '未连接',
+      statusPaused: '已暂停',
+      statusActive: '正常',
       stateConnected: '已保存 Cookie（添加于 {when}）。',
       stateDisconnected: '尚未配置 Cookie。请在浏览器登录小红书后，复制完整的 Cookie 请求头粘贴至下方。',
       stateUnusable: '已存 Cookie 异常：{reason}',
@@ -126,6 +136,8 @@ window.__ModuleLoader__.load({
       saveConnect: '保存并验证',
       saving: '正在验证…',
       disconnect: '删除 Cookie',
+      confirmDisconnect: '确认删除',
+      cancel: '取消',
       disconnecting: '正在删除…',
       noticeSaved: '验证成功并已保存：{name}。',
       noticeDisconnected: '已删除 Cookie。',
@@ -217,75 +229,138 @@ window.__ModuleLoader__.load({
       return KNOWN_ERRORS.has(code) ? t(`errors.${code}`) : t('errors.unknown', { code })
     }
 
-    const styles = {
-      page: { padding: '4px 2px 32px', color: 'var(--dsw-alias-label-primary)', maxWidth: '760px' },
-      card: {
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-2)',
-        borderRadius: '10px',
-        padding: '14px 16px',
-        marginBottom: '14px',
-      },
-      cardTitle: { fontSize: '14px', fontWeight: 600, margin: '0 0 8px' },
-      line: { fontSize: '13px', lineHeight: 1.6, margin: '0 0 6px' },
-      caption: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-caption)' },
-      warn: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-warn-label)' },
-      ok: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-success-primary)' },
-      row: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      fieldLabel: { display: 'block', fontSize: '13px', margin: '12px 0 6px' },
-      textarea: {
-        width: '100%',
-        boxSizing: 'border-box',
-        minHeight: '74px',
-        resize: 'vertical',
-        fontSize: '12px',
-        lineHeight: 1.5,
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-        padding: '8px 10px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-bg-layer-1)',
-        color: 'var(--dsw-alias-label-primary)',
-      },
-      button: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-button-elevated-fill)',
-        color: 'var(--dsw-alias-label-primary)',
-        cursor: 'pointer',
-      },
-      primaryButton: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: 'none',
-        background: 'var(--dsw-alias-button-primary-fill)',
-        color: 'var(--dsw-alias-label-primary-foreground)',
-        cursor: 'pointer',
-      },
-      dangerButton: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-state-error-primary)',
-        background: 'transparent',
-        color: 'var(--dsw-alias-state-error-primary)',
-        cursor: 'pointer',
-      },
-      disabled: { opacity: 0.5, cursor: 'default' },
-      list: { margin: '8px 0 0', padding: 0, listStyle: 'none' },
-      listItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '12px',
-        fontSize: '13px',
-        lineHeight: 1.9,
-        borderTop: '1px solid var(--dsw-alias-border-l4)',
-        paddingTop: '2px',
-      },
-    }
+    const CSS = `
+@keyframes dsh-xhs-spin { to { transform: rotate(360deg); } }
+.dsh-xhs-page { padding: 4px 2px 32px; color: var(--dsw-alias-label-primary); max-width: 760px; }
+.dsh-xhs-card {
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.dsh-xhs-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
+}
+.dsh-xhs-card-title { font-size: 14px; font-weight: 600; margin: 0; }
+.dsh-xhs-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px; font-size: 11.5px; line-height: 17px; font-weight: 500;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.14));
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-xhs-badge[data-tone="ok"] {
+  background: var(--dsw-alias-bg-layer-1); border: 1px solid var(--dsw-alias-border-l4);
+  color: var(--dsw-alias-state-success-primary);
+}
+.dsh-xhs-badge[data-tone="warn"] {
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.12));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-xhs-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+.dsh-xhs-line { font-size: 13px; line-height: 1.6; margin: 0 0 6px; }
+.dsh-xhs-caption { font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-caption); margin: 4px 0 0; }
+.dsh-xhs-account-box {
+  padding: 10px 12px; border-radius: 9px; margin: 8px 0 2px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l4);
+}
+.dsh-xhs-alert {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 9px 12px; border-radius: 8px; margin-top: 10px;
+  font-size: 12.5px; line-height: 1.55;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-xhs-alert[data-tone="ok"] { color: var(--dsw-alias-state-success-primary); }
+.dsh-xhs-alert[data-tone="warn"] {
+  border-color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.1));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-xhs-alert[data-tone="danger"] {
+  border-color: var(--dsw-alias-state-error-primary);
+  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(192,57,43,.08));
+  color: var(--dsw-alias-state-error-primary);
+}
+.dsh-xhs-field-label { display: block; font-size: 12.5px; font-weight: 500; margin: 12px 0 6px; }
+.dsh-xhs-textarea {
+  width: 100%; box-sizing: border-box; min-height: 76px; resize: vertical;
+  font-size: 12px; line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 9px 11px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  transition: border-color 120ms ease;
+}
+.dsh-xhs-textarea:focus { outline: none; border-color: var(--dsw-alias-brand-primary, #2f6feb); }
+.dsh-xhs-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.dsh-xhs-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 12.5px; font-weight: 500; padding: 6px 13px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-button-elevated-fill);
+  color: var(--dsw-alias-label-primary);
+  cursor: pointer; transition: background 120ms ease, opacity 120ms ease;
+}
+.dsh-xhs-btn:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-xhs-btn:focus-visible { outline: 2px solid var(--dsw-alias-brand-primary, #2f6feb); outline-offset: 1px; }
+.dsh-xhs-btn[data-variant="primary"] {
+  border-color: transparent;
+  background: var(--dsw-alias-button-primary-fill);
+  color: var(--dsw-alias-label-primary-foreground);
+}
+.dsh-xhs-btn[data-variant="primary"]:hover:not(:disabled) { opacity: 0.9; }
+.dsh-xhs-btn[data-variant="danger"] {
+  border-color: var(--dsw-alias-state-error-primary);
+  background: transparent;
+  color: var(--dsw-alias-state-error-primary);
+}
+.dsh-xhs-btn[data-variant="danger"]:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(192,57,43,.12));
+}
+.dsh-xhs-btn:disabled { opacity: 0.45; cursor: default; }
+.dsh-xhs-spinner {
+  width: 12px; height: 12px; border-radius: 999px;
+  border: 1.8px solid currentColor; border-top-color: transparent;
+  animation: dsh-xhs-spin 0.7s linear infinite; flex: none;
+}
+.dsh-xhs-meters { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 10px; }
+.dsh-xhs-meter {
+  padding: 10px 12px; border-radius: 9px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l4);
+}
+.dsh-xhs-meter-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 12px; }
+.dsh-xhs-meter-stat { font-size: 11.5px; color: var(--dsw-alias-label-caption); font-variant-numeric: tabular-nums; }
+.dsh-xhs-track {
+  height: 5px; margin-top: 7px; border-radius: 999px; overflow: hidden;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.18));
+}
+.dsh-xhs-fill { height: 100%; border-radius: 999px; transition: width 280ms ease; }
+.dsh-xhs-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.dsh-xhs-stat-tile {
+  padding: 10px 12px; border-radius: 9px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l4);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.dsh-xhs-stat-label { font-size: 11.5px; color: var(--dsw-alias-label-caption); }
+.dsh-xhs-stat-val { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.dsh-xhs-list { margin: 4px 0 0; padding: 0; list-style: none; }
+.dsh-xhs-list-item {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  font-size: 13px; padding: 7px 0;
+  border-top: 1px solid var(--dsw-alias-border-l1, var(--dsw-alias-border-l4));
+}
+.dsh-xhs-list-item:first-child { border-top: none; padding-top: 2px; }
+.dsh-xhs-list-value {
+  font-size: 12px; color: var(--dsw-alias-label-caption);
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right;
+}
+`
 
     /**
      * Call one Host action.
@@ -352,21 +427,70 @@ window.__ModuleLoader__.load({
       return `${bytes} B`
     }
 
-    /** One button that disables itself while its action runs. */
+    /** One button that disables itself and shows a spinner while its action runs. */
     function Action(props) {
       const { label, onClick, busy, primary, danger, disabled } = props
       const inactive = busy === true || disabled === true
-      const base = danger ? styles.dangerButton : primary ? styles.primaryButton : styles.button
       return h(
         'button',
-        { type: 'button', style: inactive ? { ...base, ...styles.disabled } : base, disabled: inactive, onClick },
+        {
+          type: 'button',
+          className: 'dsh-xhs-btn',
+          'data-variant': danger ? 'danger' : primary ? 'primary' : undefined,
+          disabled: inactive,
+          onClick,
+        },
+        busy === true ? h('span', { className: 'dsh-xhs-spinner', 'aria-hidden': true }) : null,
         label,
       )
     }
 
     /** One read-only fact row. */
     function ConfigRow(props) {
-      return h('li', { style: styles.listItem }, h('span', null, props.label), h('span', { style: styles.caption }, props.value))
+      return h(
+        'li',
+        { className: 'dsh-xhs-list-item' },
+        h('span', null, props.label),
+        h('span', { className: 'dsh-xhs-list-value' }, props.value),
+      )
+    }
+
+    /** Visual meter for a pacing budget pool. */
+    function BudgetMeter(props) {
+      const { label, stat, used, limit } = props
+      const ratio = typeof limit === 'number' && limit > 0 ? Math.min(1, Math.max(0, used / limit)) : 0
+      const pct = ratio * 100
+      const color =
+        pct >= 90
+          ? 'var(--dsw-alias-state-error-primary, #c0392b)'
+          : pct >= 70
+            ? 'var(--dsw-alias-state-warn-primary, #b8791a)'
+            : 'var(--dsw-alias-state-success-primary, #1f8f5f)'
+      return h(
+        'div',
+        { className: 'dsh-xhs-meter' },
+        h(
+          'div',
+          { className: 'dsh-xhs-meter-head' },
+          h('span', null, label),
+          h('span', { className: 'dsh-xhs-meter-stat' }, stat),
+        ),
+        h(
+          'div',
+          { className: 'dsh-xhs-track', 'aria-hidden': true },
+          h('div', { className: 'dsh-xhs-fill', style: { width: `${pct}%`, background: color } }),
+        ),
+      )
+    }
+
+    /** One metric tile in the local corpus summary grid. */
+    function StatTile(props) {
+      return h(
+        'div',
+        { className: 'dsh-xhs-stat-tile' },
+        h('span', { className: 'dsh-xhs-stat-label' }, props.label),
+        h('span', { className: 'dsh-xhs-stat-val' }, props.value),
+      )
     }
 
     /** The settings section. */
@@ -377,6 +501,7 @@ window.__ModuleLoader__.load({
       const [busy, setBusy] = React.useState(null)
       const [draft, setDraft] = React.useState('')
       const [notice, setNotice] = React.useState(null)
+      const [confirmDisconnect, setConfirmDisconnect] = React.useState(false)
       const [confirmClear, setConfirmClear] = React.useState(false)
 
       const refresh = React.useCallback(async () => {
@@ -409,6 +534,7 @@ window.__ModuleLoader__.load({
           const value = await call(action, body)
           setStatus(value.status ?? (await call('status')))
           setNotice(done(value))
+          setConfirmDisconnect(false)
         } catch (error) {
           setFailure(error)
         } finally {
@@ -419,9 +545,12 @@ window.__ModuleLoader__.load({
       if (status === null) {
         return h(
           'div',
-          { style: styles.page },
-          h('p', { style: styles.caption }, t('loading')),
-          failure === null ? null : h('p', { style: styles.warn }, errorText(t, failure.code)),
+          { className: 'dsh-xhs-page' },
+          h('style', { 'data-plugin-css': 'dsh-xhs-reader' }, CSS),
+          h('p', { className: 'dsh-xhs-caption' }, t('loading')),
+          failure === null
+            ? null
+            : h('div', { className: 'dsh-xhs-alert', 'data-tone': 'warn', role: 'alert' }, errorText(t, failure.code)),
         )
       }
 
@@ -431,40 +560,58 @@ window.__ModuleLoader__.load({
       const config = status.config
       const accountName = account?.nickname ?? account?.red_id ?? ''
       const red = account?.red_id ? ` · ${account.red_id}` : ''
+      const paused = pacing.paused_until !== null && pacing.paused_until !== undefined
 
       return h(
         'div',
-        { style: styles.page },
+        { className: 'dsh-xhs-page' },
+        h('style', { 'data-plugin-css': 'dsh-xhs-reader' }, CSS),
 
         h(
           'section',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('connectHeading')),
+          { className: 'dsh-xhs-card' },
+          h(
+            'div',
+            { className: 'dsh-xhs-card-head' },
+            h('h2', { className: 'dsh-xhs-card-title' }, t('connectHeading')),
+            h(
+              'span',
+              { className: 'dsh-xhs-badge', 'data-tone': status.connected ? 'ok' : 'warn' },
+              h('span', { className: 'dsh-xhs-dot', 'aria-hidden': true }),
+              status.connected ? t('statusConnected') : t('statusDisconnected'),
+            ),
+          ),
           h(
             'p',
-            { style: status.connected ? styles.line : styles.warn },
+            { className: status.connected ? 'dsh-xhs-line' : 'dsh-xhs-caption' },
             status.connected ? t('stateConnected', { when: when(status.saved_at) || t('none') }) : t('stateDisconnected'),
           ),
           status.credential_error === null || status.credential_error === undefined
             ? null
-            : h('p', { style: styles.warn }, t('stateUnusable', { reason: status.credential_error })),
-          account === null || account === undefined
-            ? h('p', { style: styles.line }, t('accountUnknown'))
-            : h('p', { style: styles.line }, t('accountVerified', { name: accountName || t('none'), red })),
-          status.auth_required ? h('p', { style: styles.warn }, errorText(t, 'auth_expired')) : null,
-          h('label', { style: styles.fieldLabel }, t('cookieLabel')),
+            : h('div', { className: 'dsh-xhs-alert', 'data-tone': 'warn', role: 'alert' }, t('stateUnusable', { reason: status.credential_error })),
+          h(
+            'div',
+            { className: 'dsh-xhs-account-box' },
+            account === null || account === undefined
+              ? h('p', { className: 'dsh-xhs-line', style: { margin: 0 } }, t('accountUnknown'))
+              : h('p', { className: 'dsh-xhs-line', style: { margin: 0 } }, t('accountVerified', { name: accountName || t('none'), red })),
+          ),
+          status.auth_required
+            ? h('div', { className: 'dsh-xhs-alert', 'data-tone': 'warn', role: 'alert' }, errorText(t, 'auth_expired'))
+            : null,
+          h('label', { className: 'dsh-xhs-field-label' }, t('cookieLabel')),
           h('textarea', {
-            style: styles.textarea,
+            className: 'dsh-xhs-textarea',
             spellCheck: false,
             autoComplete: 'off',
             placeholder: t('cookiePlaceholder'),
             value: draft,
             onChange: (event) => setDraft(event.target.value),
           }),
-          h('p', { style: styles.caption }, t('cookieHint')),
+          h('p', { className: 'dsh-xhs-caption' }, t('cookieHint')),
           h(
             'div',
-            { style: styles.row },
+            { className: 'dsh-xhs-row' },
             h(Action, {
               label: busy === 'connect' ? t('saving') : t('saveConnect'),
               busy: busy === 'connect',
@@ -481,82 +628,124 @@ window.__ModuleLoader__.load({
                 })
               },
             }),
-            h(Action, {
-              label: busy === 'disconnect' ? t('disconnecting') : t('disconnect'),
-              busy: busy === 'disconnect',
-              disabled: busy !== null || !status.connected,
-              onClick: () => void run('disconnect', undefined, () => t('noticeDisconnected')),
-            }),
+            confirmDisconnect
+              ? h(
+                  React.Fragment,
+                  null,
+                  h(Action, {
+                    label: busy === 'disconnect' ? t('disconnecting') : t('confirmDisconnect'),
+                    busy: busy === 'disconnect',
+                    danger: true,
+                    disabled: busy !== null || !status.connected,
+                    onClick: () => void run('disconnect', undefined, () => t('noticeDisconnected')),
+                  }),
+                  h(Action, {
+                    label: t('cancel'),
+                    disabled: busy !== null,
+                    onClick: () => setConfirmDisconnect(false),
+                  }),
+                )
+              : h(Action, {
+                  label: t('disconnect'),
+                  disabled: busy !== null || !status.connected,
+                  onClick: () => setConfirmDisconnect(true),
+                }),
           ),
-          notice === null ? null : h('p', { style: styles.ok }, notice),
+          notice === null ? null : h('div', { className: 'dsh-xhs-alert', 'data-tone': 'ok' }, notice),
           failure === null
             ? null
             : h(
                 'div',
-                null,
-                h('p', { style: styles.warn }, errorText(t, failure.code)),
+                { className: 'dsh-xhs-alert', 'data-tone': 'warn', role: 'alert' },
+                h('span', null, errorText(t, failure.code)),
                 failure.retryAt === undefined || failure.retryAt === null
                   ? null
-                  : h('p', { style: styles.caption }, t('errorRetryAt', { when: when(failure.retryAt) })),
+                  : h('span', { className: 'dsh-xhs-caption', style: { margin: 0, color: 'inherit', opacity: 0.9 } }, t('errorRetryAt', { when: when(failure.retryAt) })),
               ),
         ),
 
         h(
           'section',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('pacingHeading')),
+          { className: 'dsh-xhs-card' },
           h(
-            'ul',
-            { style: styles.list },
-            h(ConfigRow, { label: t('pacingInterval'), value: durationText(t, config.minIntervalMs) }),
-            h(ConfigRow, {
+            'div',
+            { className: 'dsh-xhs-card-head' },
+            h('h2', { className: 'dsh-xhs-card-title' }, t('pacingHeading')),
+            h(
+              'span',
+              { className: 'dsh-xhs-badge', 'data-tone': paused ? 'warn' : 'ok' },
+              h('span', { className: 'dsh-xhs-dot', 'aria-hidden': true }),
+              paused ? t('statusPaused') : t('statusActive'),
+            ),
+          ),
+          h(
+            'div',
+            { className: 'dsh-xhs-meters' },
+            h(BudgetMeter, {
               label: t('pacingHour'),
-              value: t('pacingHourValue', {
+              stat: t('pacingHourValue', {
                 hour: pacing.requests_last_hour,
                 hourLimit: pacing.hourly_budget,
                 day: pacing.requests_last_day,
                 dayLimit: pacing.daily_budget,
               }),
+              used: pacing.requests_last_hour,
+              limit: pacing.hourly_budget,
             }),
-            h(ConfigRow, {
+            h(BudgetMeter, {
               label: t('pacingSearch'),
-              value: t('pacingSearchValue', {
+              stat: t('pacingSearchValue', {
                 hour: pacing.searches_last_hour,
                 hourLimit: pacing.search_hourly_budget,
                 day: pacing.searches_last_day,
                 dayLimit: pacing.search_daily_budget,
               }),
+              used: pacing.searches_last_hour,
+              limit: pacing.search_hourly_budget,
             }),
+          ),
+          h(
+            'ul',
+            { className: 'dsh-xhs-list' },
+            h(ConfigRow, { label: t('pacingInterval'), value: durationText(t, config.minIntervalMs) }),
             h(ConfigRow, { label: t('pacingReset'), value: pacing.budget_reset_at === null ? t('none') : when(pacing.budget_reset_at) }),
             h(ConfigRow, { label: t('pacingPaused'), value: pacing.paused_until === null ? t('pacingPausedNone') : when(pacing.paused_until) }),
             h(ConfigRow, { label: t('pacingCache'), value: t('pacingCacheValue', { entries: pacing.cache_entries, seconds: Math.round(config.cacheTtlMs / 1000) }) }),
             h(ConfigRow, { label: t('pacingTotal'), value: String(pacing.total_requests) }),
             h(ConfigRow, { label: t('pacingLast'), value: pacing.last_request_at === null ? t('none') : when(pacing.last_request_at) }),
           ),
-          h('p', { style: styles.caption }, t('pacingNote')),
+          h('p', { className: 'dsh-xhs-caption', style: { marginTop: '10px' } }, t('pacingNote')),
         ),
 
         h(
           'section',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('corpusHeading')),
+          { className: 'dsh-xhs-card' },
+          h(
+            'div',
+            { className: 'dsh-xhs-card-head' },
+            h('h2', { className: 'dsh-xhs-card-title' }, t('corpusHeading')),
+          ),
+          h(
+            'div',
+            { className: 'dsh-xhs-stats' },
+            h(StatTile, { label: t('corpusNotes'), value: String(corpus.note_count) }),
+            h(StatTile, { label: t('corpusComments'), value: String(corpus.comment_count) }),
+            h(StatTile, { label: t('corpusMedia'), value: String(corpus.media_count) }),
+            h(StatTile, { label: t('corpusSize'), value: bytesText(corpus.database_bytes) }),
+          ),
           h(
             'ul',
-            { style: styles.list },
-            h(ConfigRow, { label: t('corpusNotes'), value: String(corpus.note_count) }),
-            h(ConfigRow, { label: t('corpusComments'), value: String(corpus.comment_count) }),
-            h(ConfigRow, { label: t('corpusMedia'), value: String(corpus.media_count) }),
-            h(ConfigRow, { label: t('corpusSize'), value: bytesText(corpus.database_bytes) }),
+            { className: 'dsh-xhs-list' },
             h(ConfigRow, { label: t('corpusLast'), value: corpus.last_capture_at === null ? t('none') : when(corpus.last_capture_at) }),
           ),
           confirmClear
             ? h(
                 'div',
-                null,
-                h('p', { style: styles.warn }, t('corpusClearConfirm')),
+                { className: 'dsh-xhs-alert', 'data-tone': 'danger', role: 'alert' },
+                h('span', null, t('corpusClearConfirm')),
                 h(
                   'div',
-                  { style: styles.row },
+                  { className: 'dsh-xhs-row', style: { marginTop: '4px' } },
                   h(Action, {
                     label: busy === 'clear_corpus' ? t('corpusClearing') : t('corpusClear'),
                     busy: busy === 'clear_corpus',
@@ -573,18 +762,22 @@ window.__ModuleLoader__.load({
               )
             : h(
                 'div',
-                { style: styles.row },
+                { className: 'dsh-xhs-row' },
                 h(Action, { label: t('corpusClear'), danger: true, disabled: busy !== null || corpus.note_count === 0, onClick: () => setConfirmClear(true) }),
               ),
         ),
 
         h(
           'section',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('limitsHeading')),
+          { className: 'dsh-xhs-card' },
+          h(
+            'div',
+            { className: 'dsh-xhs-card-head' },
+            h('h2', { className: 'dsh-xhs-card-title' }, t('limitsHeading')),
+          ),
           h(
             'ul',
-            { style: styles.list },
+            { className: 'dsh-xhs-list' },
             h(ConfigRow, { label: t('limitsContent'), value: t('limitsChars', { count: config.contentChars }) }),
             h(ConfigRow, { label: t('limitsMedia'), value: config.downloadMedia ? t('limitsMediaOn') : t('limitsMediaOff') }),
             h(ConfigRow, {
@@ -592,7 +785,7 @@ window.__ModuleLoader__.load({
               value: t('limitsBudgetValue', { hour: config.hourlyBudget, day: config.dailyBudget }),
             }),
           ),
-          h('p', { style: styles.caption }, t('limitsNote')),
+          h('p', { className: 'dsh-xhs-caption', style: { marginTop: '10px' } }, t('limitsNote')),
         ),
       )
     }

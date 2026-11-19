@@ -233,50 +233,105 @@ window.__ModuleLoader__.load({
       scheduleRestored: '定时导入任务已重建。',
     }
 
+    const CSS = `
+@keyframes dsh-wc-spin { to { transform: rotate(360deg); } }
+.dsh-wc-section { max-width: 860px; padding: 4px 2px 32px; color: var(--dsw-alias-label-primary); }
+.dsh-wc-card {
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.dsh-wc-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 12px;
+}
+.dsh-wc-card-title { font-size: 14px; font-weight: 600; margin: 0; }
+.dsh-wc-rows {
+  display: grid; grid-template-columns: minmax(120px, 190px) 1fr;
+  gap: 8px 16px; font-size: 13px; margin: 0;
+}
+.dsh-wc-term { color: var(--dsw-alias-label-caption); }
+.dsh-wc-value { margin: 0; min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.dsh-wc-signals { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.dsh-wc-alert {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 8px;
+  font-size: 12.5px; line-height: 1.5;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-wc-alert[data-tone="warn"] {
+  border-color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.1));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-wc-progress-box {
+  margin-top: 12px; padding: 10px 12px; border-radius: 9px;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-wc-progress-head {
+  display: flex; align-items: center; gap: 8px; font-size: 12.5px;
+  color: var(--dsw-alias-label-primary); font-variant-numeric: tabular-nums;
+}
+.dsh-wc-spinner {
+  width: 12px; height: 12px; border-radius: 999px;
+  border: 1.8px solid currentColor; border-top-color: transparent;
+  animation: dsh-wc-spin 0.7s linear infinite; flex: none;
+}
+.dsh-wc-track {
+  height: 5px; margin-top: 8px; border-radius: 999px; overflow: hidden;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.18));
+}
+.dsh-wc-fill {
+  height: 100%; border-radius: 999px;
+  background: var(--dsw-alias-brand-primary, #2f6feb);
+  transition: width 280ms ease;
+}
+.dsh-wc-table-box { overflow-x: auto; scrollbar-width: thin; }
+.dsh-wc-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 13px; }
+.dsh-wc-th {
+  text-align: left; font-weight: 500; font-size: 12px;
+  color: var(--dsw-alias-label-caption);
+  padding: 7px 10px 7px 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l4);
+  white-space: nowrap;
+}
+.dsh-wc-td {
+  padding: 9px 10px 9px 0;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+  vertical-align: middle;
+}
+.dsh-wc-tr:hover .dsh-wc-td { background: var(--dsw-alias-interactive-bg-hover, rgba(127,127,127,.06)); }
+.dsh-wc-tr:last-child .dsh-wc-td { border-bottom: none; }
+.dsh-wc-nowrap { white-space: nowrap; }
+.dsh-wc-batch { min-width: 170px; overflow-wrap: anywhere; }
+.dsh-wc-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dsh-wc-actions-head { width: 1%; }
+.dsh-wc-actions { display: flex; gap: 8px; flex-wrap: nowrap; }
+.dsh-wc-result {
+  margin-top: 12px; padding: 12px 14px; border-radius: 9px;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+  font-size: 13px; line-height: 1.65;
+}
+.dsh-wc-result p { margin: 2px 0; }
+.dsh-wc-muted { color: var(--dsw-alias-label-caption); font-size: 12px; margin: 8px 0 0; }
+.dsh-wc-body { font-size: 13px; line-height: 1.7; margin: 0 0 8px; }
+.dsh-wc-warn { color: var(--dsw-alias-label-error); font-size: 13px; }
+.dsh-wc-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+`
+
     /**
      * Layout for the section. Values are the shell's own semantic tokens, so the
      * page follows the active theme instead of carrying colors of its own.
      */
     const styles = {
-      section: { maxWidth: '860px', padding: '4px 2px 32px', color: 'var(--dsw-alias-label-primary)' },
-      card: {
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-2)',
-        borderRadius: '10px',
-        padding: '16px 18px',
-        marginBottom: '14px',
-      },
-      cardTitle: { fontSize: '14px', fontWeight: 600, margin: '0 0 12px' },
-      rows: { display: 'grid', gridTemplateColumns: 'minmax(120px, 190px) 1fr', gap: '6px 16px', fontSize: '13px', margin: 0 },
       term: { color: 'var(--dsw-alias-label-caption)' },
       value: { margin: 0, minWidth: 0, overflowWrap: 'anywhere' },
-      signals: { margin: '12px 0 0', paddingLeft: '18px', fontSize: '13px', lineHeight: 1.7 },
-      // The seven columns keep their own widths and the box scrolls when the
-      // settings column is narrow; compressing them is what wrapped the buttons.
-      tableBox: { overflowX: 'auto' },
-      table: { width: '100%', minWidth: '560px', borderCollapse: 'collapse', fontSize: '13px' },
-      th: {
-        textAlign: 'left',
-        fontWeight: 500,
-        color: 'var(--dsw-alias-label-caption)',
-        padding: '6px 10px 6px 0',
-        borderBottom: '1px solid var(--dsw-alias-border-l4)',
-        whiteSpace: 'nowrap',
-      },
-      td: { padding: '8px 10px 8px 0', borderBottom: '1px solid var(--dsw-alias-border-l1)', verticalAlign: 'middle' },
-      // Shrink-to-fit: the actions cell takes the buttons' width and the
-      // conversation name absorbs whatever is left.
-      nowrap: { whiteSpace: 'nowrap' },
-      // The conversation name wraps rather than being crushed; the box above it
-      // takes over once even this does not fit.
-      batch: { minWidth: '170px', overflowWrap: 'anywhere' },
-      num: { textAlign: 'right', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' },
-      actionsHead: { width: '1%' },
-      actions: { display: 'flex', gap: '8px', flexWrap: 'nowrap' },
-      muted: { color: 'var(--dsw-alias-label-caption)', fontSize: '12px', margin: '8px 0 0' },
-      body: { fontSize: '13px', lineHeight: 1.7 },
-      warn: { color: 'var(--dsw-alias-label-error)', fontSize: '13px' },
-      mono: { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: '12px' },
     }
 
     /**
@@ -376,33 +431,46 @@ window.__ModuleLoader__.load({
       }
 
       if (state.loading) {
-        return h('div', { style: styles.section }, h('p', { style: styles.muted }, t('loading')))
+        return h('div', { className: 'dsh-wc-section' }, h('style', { 'data-plugin-css': 'dsh-wechat' }, CSS), h('p', { className: 'dsh-wc-muted' }, t('loading')))
       }
       if (state.data === null) {
         return h(
           'div',
-          { style: styles.section },
-          h('p', { style: styles.warn }, state.error === 'network_error' ? t('networkFailed') : t('loadFailed', { code: state.error ?? 'internal_error' })),
+          { className: 'dsh-wc-section' },
+          h('style', { 'data-plugin-css': 'dsh-wechat' }, CSS),
+          h('div', { className: 'dsh-wc-alert', 'data-tone': 'warn', role: 'alert' }, state.error === 'network_error' ? t('networkFailed') : t('loadFailed', { code: state.error ?? 'internal_error' })),
         )
       }
 
       const data = state.data
       const pipeline = data.pipeline
       const statusKey = `status${pipeline.status.charAt(0).toUpperCase()}${pipeline.status.slice(1).replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())}`
+      const statusTone = pipeline.status === 'ok' ? 'success' : pipeline.status === 'action_required' || pipeline.status === 'unreadable' ? 'warn' : undefined
       const result = data.import.lastResult
+      const progress = data.import.progress
+      const progressPct =
+        running && progress && typeof progress.total === 'number' && progress.total > 0
+          ? Math.min(100, Math.round(((progress.processed ?? 0) / progress.total) * 100))
+          : null
 
       // The Plugins panel draws this page's title, version, and description from
       // the bundle's locale metadata, so this renders its cards only.
       return h(
         'div',
-        { style: styles.section },
+        { className: 'dsh-wc-section' },
+        h('style', { 'data-plugin-css': 'dsh-wechat' }, CSS),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('overviewHeading')),
+          { className: 'dsh-wc-card' },
+          h(
+            'div',
+            { className: 'dsh-wc-card-head' },
+            h('h2', { className: 'dsh-wc-card-title' }, t('overviewHeading')),
+            h(Tag, { tone: statusTone }, t(statusKey)),
+          ),
           h(
             'dl',
-            { style: styles.rows },
+            { className: 'dsh-wc-rows' },
             h(Row, { label: t('statusLabel'), value: t(statusKey) }),
             h(Row, { label: t('databaseLabel'), value: describeDatabase(t, pipeline.database) }),
             h(Row, { label: t('databaseChangeLabel'), value: pipeline.database.latest_change_at ?? t('never') }),
@@ -412,34 +480,52 @@ window.__ModuleLoader__.load({
             h(Row, { label: t('corpusLabel'), value: t('corpusValue', { messages: pipeline.corpus.messages, chats: pipeline.corpus.chats }) }),
           ),
           pipeline.signals.length > 0
-            ? h('ul', { style: styles.signals }, ...pipeline.signals.map((signal, index) => h('li', { key: index }, signalText(t, signal))))
+            ? h(
+                'div',
+                { className: 'dsh-wc-signals' },
+                ...pipeline.signals.map((signal, index) =>
+                  h(
+                    'div',
+                    {
+                      key: index,
+                      className: 'dsh-wc-alert',
+                      'data-tone': signal.code === 'import_failed' || signal.code.startsWith('keys_') ? 'warn' : undefined,
+                    },
+                    signalText(t, signal),
+                  ),
+                ),
+              )
             : null,
         ),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('batchesHeading')),
+          { className: 'dsh-wc-card' },
+          h(
+            'div',
+            { className: 'dsh-wc-card-head' },
+            h('h2', { className: 'dsh-wc-card-title' }, t('batchesHeading')),
+          ),
           data.batches.length === 0
-            ? h('p', { style: styles.muted }, t('batchesEmpty'))
+            ? h('p', { className: 'dsh-wc-muted' }, t('batchesEmpty'))
             : h(
                 'div',
-                { style: styles.tableBox },
+                { className: 'dsh-wc-table-box' },
                 h(
                   'table',
-                  { style: styles.table },
+                  { className: 'dsh-wc-table' },
                   h(
                     'thead',
                     null,
                     h(
                       'tr',
                       null,
-                      h('th', { style: { ...styles.th, ...styles.batch } }, t('columnBatch')),
-                      h('th', { style: { ...styles.th, ...styles.nowrap } }, t('columnState')),
-                      h('th', { style: { ...styles.th, ...styles.nowrap } }, t('columnExport')),
-                      h('th', { style: { ...styles.th, ...styles.num } }, t('columnChats')),
-                      h('th', { style: { ...styles.th, ...styles.num } }, t('columnMessages')),
-                      h('th', { style: { ...styles.th, ...styles.nowrap } }, t('columnImported')),
-                      h('th', { style: { ...styles.th, ...styles.actionsHead } }, ''),
+                      h('th', { className: 'dsh-wc-th dsh-wc-batch' }, t('columnBatch')),
+                      h('th', { className: 'dsh-wc-th dsh-wc-nowrap' }, t('columnState')),
+                      h('th', { className: 'dsh-wc-th dsh-wc-nowrap' }, t('columnExport')),
+                      h('th', { className: 'dsh-wc-th dsh-wc-num' }, t('columnChats')),
+                      h('th', { className: 'dsh-wc-th dsh-wc-num' }, t('columnMessages')),
+                      h('th', { className: 'dsh-wc-th dsh-wc-nowrap' }, t('columnImported')),
+                      h('th', { className: 'dsh-wc-th dsh-wc-actions-head' }, ''),
                     ),
                   ),
                   h(
@@ -450,31 +536,31 @@ window.__ModuleLoader__.load({
                       const busy = state.busy === row.batch
                       return h(
                         'tr',
-                        { key: row.batch },
+                        { key: row.batch, className: 'dsh-wc-tr' },
                         h(
                           'td',
-                          { style: styles.td },
+                          { className: 'dsh-wc-td' },
                           h('div', null, row.batch),
                           row.invalid === null || row.invalid === undefined
                             ? null
-                            : h('div', { style: styles.muted }, row.invalid),
+                            : h('div', { className: 'dsh-wc-muted' }, row.invalid),
                         ),
                         h(
                           'td',
-                          { style: { ...styles.td, ...styles.nowrap } },
+                          { className: 'dsh-wc-td dsh-wc-nowrap' },
                           h(Tag, { tone: row.state === 'imported' ? 'success' : undefined }, t(stateKey(row.state))),
                         ),
-                        h('td', { style: { ...styles.td, ...styles.nowrap } }, stamp(row.exportInstant ?? row.exportTime) ?? t('unknown')),
-                        h('td', { style: { ...styles.td, ...styles.num } }, row.chatCount ?? '—'),
-                        h('td', { style: { ...styles.td, ...styles.num } }, row.totalMessages ?? '—'),
-                        h('td', { style: { ...styles.td, ...styles.nowrap } }, stamp(row.importedAt) ?? t('never')),
+                        h('td', { className: 'dsh-wc-td dsh-wc-nowrap dsh-wc-num', style: { textAlign: 'left' } }, stamp(row.exportInstant ?? row.exportTime) ?? t('unknown')),
+                        h('td', { className: 'dsh-wc-td dsh-wc-num' }, row.chatCount ?? '—'),
+                        h('td', { className: 'dsh-wc-td dsh-wc-num' }, row.totalMessages ?? '—'),
+                        h('td', { className: 'dsh-wc-td dsh-wc-nowrap dsh-wc-num', style: { textAlign: 'left' } }, stamp(row.importedAt) ?? t('never')),
                         h(
                           'td',
-                          { style: { ...styles.td, ...styles.nowrap } },
+                          { className: 'dsh-wc-td dsh-wc-nowrap' },
                           importable
                             ? h(
                                 'div',
-                                { style: styles.actions },
+                                { className: 'dsh-wc-actions' },
                                 h(
                                   Button,
                                   { variant: 'primary', size: 'sm', disabled: running || busy, onClick: () => void startImport(row.batch, false) },
@@ -491,37 +577,63 @@ window.__ModuleLoader__.load({
                       )
                     }),
                   ),
-                  ),
+                ),
               ),
-          running ? h('p', { style: styles.muted }, progressText(t, data.import.progress)) : null,
+          running
+            ? h(
+                'div',
+                { className: 'dsh-wc-progress-box' },
+                h(
+                  'div',
+                  { className: 'dsh-wc-progress-head' },
+                  h('span', { className: 'dsh-wc-spinner', 'aria-hidden': true }),
+                  h('span', null, progressText(t, progress)),
+                ),
+                progressPct === null
+                  ? null
+                  : h(
+                      'div',
+                      { className: 'dsh-wc-track', 'aria-hidden': true },
+                      h('div', { className: 'dsh-wc-fill', style: { width: `${progressPct}%` } }),
+                    ),
+              )
+            : null,
           result === null || result === undefined
             ? null
-            : h('div', { style: styles.body }, h('h2', { style: styles.cardTitle }, t('resultHeading')), ...resultLines(t, result, pipeline.corpus)),
+            : h('div', { className: 'dsh-wc-result' }, h('h2', { className: 'dsh-wc-card-title', style: { marginBottom: '6px' } }, t('resultHeading')), ...resultLines(t, result, pipeline.corpus)),
         ),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('configHeading')),
+          { className: 'dsh-wc-card' },
+          h(
+            'div',
+            { className: 'dsh-wc-card-head' },
+            h('h2', { className: 'dsh-wc-card-title' }, t('configHeading')),
+          ),
           h(
             'dl',
-            { style: styles.rows },
-            h(Row, { label: t('configArchive'), value: h('span', { style: styles.mono }, data.config.batchesDir) }),
-            h(Row, { label: t('configDatabase'), value: h('span', { style: styles.mono }, data.config.databasePath) }),
-            h(Row, { label: t('configExporter'), value: h('span', { style: styles.mono }, data.config.exporterDir === '' ? t('unknown') : data.config.exporterDir) }),
-            h(Row, { label: t('configExportDir'), value: h('span', { style: styles.mono }, data.config.exportDir === '' ? t('unknown') : data.config.exportDir) }),
-            h(Row, { label: t('configKeys'), value: h('span', { style: styles.mono }, data.config.keysFile === '' ? t('unknown') : data.config.keysFile) }),
+            { className: 'dsh-wc-rows' },
+            h(Row, { label: t('configArchive'), value: h('span', { className: 'dsh-wc-mono' }, data.config.batchesDir) }),
+            h(Row, { label: t('configDatabase'), value: h('span', { className: 'dsh-wc-mono' }, data.config.databasePath) }),
+            h(Row, { label: t('configExporter'), value: h('span', { className: 'dsh-wc-mono' }, data.config.exporterDir === '' ? t('unknown') : data.config.exporterDir) }),
+            h(Row, { label: t('configExportDir'), value: h('span', { className: 'dsh-wc-mono' }, data.config.exportDir === '' ? t('unknown') : data.config.exportDir) }),
+            h(Row, { label: t('configKeys'), value: h('span', { className: 'dsh-wc-mono' }, data.config.keysFile === '' ? t('unknown') : data.config.keysFile) }),
             h(Row, { label: t('configScope'), value: data.config.includeGroups ? t('scopeGroups') : t('scopePrivate') }),
           ),
-          h('p', { style: styles.muted }, t('configHint')),
+          h('p', { className: 'dsh-wc-muted' }, t('configHint')),
         ),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('scheduleHeading')),
-          scheduleBody(t, data.schedule, () => void restoreSchedule(data.schedule), state.busy === 'schedule'),
-          state.notice === null ? null : h('p', { style: styles.muted }, t(state.notice)),
+          { className: 'dsh-wc-card' },
+          h(
+            'div',
+            { className: 'dsh-wc-card-head' },
+            h('h2', { className: 'dsh-wc-card-title' }, t('scheduleHeading')),
+          ),
+          ...scheduleBody(t, data.schedule, () => void restoreSchedule(data.schedule), state.busy === 'schedule'),
+          state.notice === null ? null : h('p', { className: 'dsh-wc-muted' }, t(state.notice)),
         ),
-        h('div', { style: styles.actions }, h(Button, { variant: 'ghost', size: 'sm', onClick: () => void refresh() }, t('refresh'))),
+        h('div', { className: 'dsh-wc-actions' }, h(Button, { variant: 'ghost', size: 'sm', onClick: () => void refresh() }, t('refresh'))),
       )
     }
 
@@ -688,8 +800,8 @@ window.__ModuleLoader__.load({
      * @returns {Array} the card body.
      */
     function scheduleBody(t, schedule, onRestore, busy) {
-      if (schedule === undefined || schedule === null) return [h('p', { style: styles.muted }, t('loading'))]
-      if (schedule.available === false) return [h('p', { style: styles.muted }, t('scheduleUnavailable'))]
+      if (schedule === undefined || schedule === null) return [h('p', { key: 'loading', className: 'dsh-wc-muted' }, t('loading'))]
+      if (schedule.available === false) return [h('p', { key: 'unavail', className: 'dsh-wc-muted' }, t('scheduleUnavailable'))]
       const first = (schedule.tasks ?? [])[0]
       const state = first === undefined
         ? t('scheduleMissing')
@@ -697,10 +809,10 @@ window.__ModuleLoader__.load({
           ? t('scheduleActive', { when: stamp(first.nextRunAt) ?? t('unknown') })
           : t('scheduleInactive')
       return [
-        h('p', { key: 'state', style: styles.body }, state),
+        h('p', { key: 'state', className: 'dsh-wc-body' }, state),
         h(
           'div',
-          { key: 'action', style: styles.actions },
+          { key: 'action', className: 'dsh-wc-actions' },
           h(Button, { variant: 'ghost', size: 'sm', disabled: busy, onClick: onRestore }, first === undefined ? t('scheduleSetUp') : t('scheduleRecreate')),
         ),
       ]
@@ -715,10 +827,10 @@ window.__ModuleLoader__.load({
      */
     function resultLines(t, result, corpus) {
       if (result.progress !== null && result.progress !== undefined) {
-        return [h('p', { key: 'progress', style: styles.muted }, progressText(t, result.progress))]
+        return [h('p', { key: 'progress', className: 'dsh-wc-muted' }, progressText(t, result.progress))]
       }
       if (result.ok !== true) {
-        return [h('p', { key: 'failed', style: styles.warn }, t('resultFailed', { reason: result.reason ?? t('unknown') }))]
+        return [h('p', { key: 'failed', className: 'dsh-wc-warn' }, t('resultFailed', { reason: result.reason ?? t('unknown') }))]
       }
       const lines = [
         h(

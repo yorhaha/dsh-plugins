@@ -25,16 +25,26 @@ window.__ModuleLoader__.load({
     const en = {
       loading: 'Loading notification targets…',
       targetsHeading: 'Targets',
+      targetsCount: '{count}',
       targetsEmpty: 'No targets configured. Add a PushPlus token below.',
+      statusReady: 'Ready',
+      statusUnusable: 'Unusable',
       addedAt: 'added {when}',
       unusable: 'unusable: {reason}',
+      showToken: 'Show',
+      hideToken: 'Hide',
+      copyToken: 'Copy',
+      copied: 'Copied',
       test: 'Send test',
       remove: 'Delete',
+      confirmRemove: 'Confirm delete',
+      cancel: 'Cancel',
       addHeading: 'Add or update target',
       nameLabel: 'Name',
       nameHint:
         'Lowercase letters, digits, and hyphens (up to 32 chars). Using an existing name updates its token.',
       tokenLabel: 'PushPlus Token',
+      tokenPlaceholder: 'Paste PushPlus token…',
       tokenHint: 'Saved in the local credential store.',
       save: 'Save',
       saved: 'Saved.',
@@ -74,15 +84,25 @@ window.__ModuleLoader__.load({
     const zh = {
       loading: '正在加载通知目标…',
       targetsHeading: '推送目标',
+      targetsCount: '{count}',
       targetsEmpty: '暂无推送目标，请在下方添加 PushPlus token。',
+      statusReady: '可用',
+      statusUnusable: '不可用',
       addedAt: '添加于 {when}',
       unusable: '不可用：{reason}',
+      showToken: '显示',
+      hideToken: '隐藏',
+      copyToken: '复制',
+      copied: '已复制',
       test: '发送测试',
       remove: '删除',
+      confirmRemove: '确认删除',
+      cancel: '取消',
       addHeading: '添加或更新目标',
       nameLabel: '目标名称',
       nameHint: '支持小写字母、数字和连字符（最多 32 个字符）；同名目标将覆盖更新其 token。',
       tokenLabel: 'PushPlus Token',
+      tokenPlaceholder: '粘贴 PushPlus token…',
       tokenHint: '保存在本机凭据库中。',
       save: '保存',
       saved: '已保存。',
@@ -153,84 +173,141 @@ window.__ModuleLoader__.load({
       return KNOWN_REASONS.has(reason) ? t(`reasons.${reason}`) : String(reason)
     }
 
-    const styles = {
-      page: { padding: '4px 2px 32px', color: 'var(--dsw-alias-label-primary)', maxWidth: '720px' },
-      card: {
-        border: '1px solid var(--dsw-alias-border-l4)',
-        background: 'var(--dsw-alias-bg-layer-2)',
-        borderRadius: '10px',
-        padding: '14px 16px',
-        marginBottom: '14px',
-      },
-      cardTitle: { fontSize: '14px', fontWeight: 600, margin: '0 0 8px' },
-      line: { fontSize: '13px', lineHeight: 1.6, margin: '0 0 6px' },
-      caption: { fontSize: '12px', lineHeight: 1.6, color: 'var(--dsw-alias-label-caption)' },
-      warn: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-warn-label)' },
-      ok: { fontSize: '13px', lineHeight: 1.6, color: 'var(--dsw-alias-state-success-primary)' },
-      row: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      targetRow: {
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '12px',
-        padding: '8px 0',
-        borderTop: '1px solid var(--dsw-alias-border-l4)',
-      },
-      targetMain: { display: 'flex', flex: '1 1 auto', flexDirection: 'column', minWidth: 0 },
-      targetName: {
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-        fontSize: '13px',
-        lineHeight: 1.7,
-      },
-      targetToken: {
-        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-        fontSize: '12px',
-        lineHeight: 1.7,
-        wordBreak: 'break-all',
-        color: 'var(--dsw-alias-label-secondary)',
-      },
-      field: { display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginTop: '10px' },
-      fieldLabel: { flex: '0 0 96px', fontSize: '13px' },
-      input: {
-        flex: '1 1 220px',
-        minWidth: '160px',
-        boxSizing: 'border-box',
-        fontSize: '13px',
-        padding: '6px 10px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-bg-layer-1)',
-        color: 'var(--dsw-alias-label-primary)',
-      },
-      button: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: '1px solid var(--dsw-alias-border-l2)',
-        background: 'var(--dsw-alias-button-elevated-fill)',
-        color: 'var(--dsw-alias-label-primary)',
-        cursor: 'pointer',
-      },
-      primaryButton: {
-        fontSize: '13px',
-        padding: '6px 14px',
-        borderRadius: '8px',
-        border: 'none',
-        background: 'var(--dsw-alias-button-primary-fill)',
-        color: 'var(--dsw-alias-label-primary-foreground)',
-        cursor: 'pointer',
-      },
-      disabled: { opacity: 0.5, cursor: 'default' },
-      list: { margin: '8px 0 0', padding: 0, listStyle: 'none' },
-      listItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        gap: '12px',
-        fontSize: '13px',
-        lineHeight: 1.9,
-        borderTop: '1px solid var(--dsw-alias-border-l4)',
-        paddingTop: '2px',
-      },
-    }
+    const CSS = `
+@keyframes dsh-ntf-spin { to { transform: rotate(360deg); } }
+.dsh-ntf-page { padding: 4px 2px 32px; color: var(--dsw-alias-label-primary); max-width: 740px; }
+.dsh-ntf-card {
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.dsh-ntf-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 10px;
+}
+.dsh-ntf-card-title { font-size: 14px; font-weight: 600; margin: 0; }
+.dsh-ntf-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; border-radius: 999px; font-size: 11.5px; line-height: 17px; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  background: var(--dsw-alias-bg-layer-3, rgba(127,127,127,.14));
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-ntf-badge[data-tone="ok"] {
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l4);
+  color: var(--dsw-alias-state-success-primary);
+}
+.dsh-ntf-badge[data-tone="warn"] {
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.12));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-ntf-dot { width: 6px; height: 6px; border-radius: 999px; background: currentColor; flex: none; }
+.dsh-ntf-caption { font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-caption); margin: 4px 0 0; }
+.dsh-ntf-alert {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 9px 12px; border-radius: 8px; margin-top: 10px; margin-bottom: 10px;
+  font-size: 12.5px; line-height: 1.55;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-ntf-alert[data-tone="ok"] { color: var(--dsw-alias-state-success-primary); }
+.dsh-ntf-alert[data-tone="warn"] {
+  border-color: var(--dsw-alias-state-warn-label);
+  background: var(--dsw-alias-state-warn-tertiary, rgba(184,121,26,.1));
+  color: var(--dsw-alias-state-warn-label);
+}
+.dsh-ntf-alert-body { flex: 1; min-width: 0; }
+.dsh-ntf-alert-detail { font-size: 11.5px; color: var(--dsw-alias-label-caption); margin-top: 2px; word-break: break-word; }
+.dsh-ntf-target-list { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.dsh-ntf-target-item {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 12px; border-radius: 9px;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-ntf-target-main { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.dsh-ntf-target-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dsh-ntf-target-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px; font-weight: 600;
+}
+.dsh-ntf-token-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dsh-ntf-token {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; word-break: break-all;
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-ntf-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dsh-ntf-field { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; }
+.dsh-ntf-field:first-of-type { margin-top: 4px; }
+.dsh-ntf-label { font-size: 12.5px; font-weight: 500; color: var(--dsw-alias-label-primary); }
+.dsh-ntf-input-wrap { display: flex; align-items: center; gap: 6px; }
+.dsh-ntf-input {
+  flex: 1 1 auto; min-width: 0; width: 100%; box-sizing: border-box;
+  font-size: 13px; padding: 7px 11px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  transition: border-color 120ms ease;
+}
+.dsh-ntf-input[data-mono="true"] { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+.dsh-ntf-input:focus { outline: none; border-color: var(--dsw-alias-brand-primary, #2f6feb); }
+.dsh-ntf-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-size: 12.5px; font-weight: 500; padding: 6px 13px; border-radius: 8px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-button-elevated-fill);
+  color: var(--dsw-alias-label-primary);
+  cursor: pointer; transition: background 120ms ease, opacity 120ms ease, border-color 120ms ease;
+}
+.dsh-ntf-btn:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover); }
+.dsh-ntf-btn:focus-visible, .dsh-ntf-micro:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary, #2f6feb); outline-offset: 1px;
+}
+.dsh-ntf-btn[data-variant="primary"] {
+  border-color: transparent;
+  background: var(--dsw-alias-button-primary-fill);
+  color: var(--dsw-alias-label-primary-foreground);
+}
+.dsh-ntf-btn[data-variant="primary"]:hover:not(:disabled) { opacity: 0.9; }
+.dsh-ntf-btn[data-variant="danger"] {
+  border-color: var(--dsw-alias-state-error-primary);
+  background: transparent;
+  color: var(--dsw-alias-state-error-primary);
+}
+.dsh-ntf-btn[data-variant="danger"]:hover:not(:disabled) {
+  background: var(--dsw-alias-interactive-bg-hover-danger, rgba(192,57,43,.12));
+}
+.dsh-ntf-btn[data-size="sm"] { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
+.dsh-ntf-btn:disabled { opacity: 0.45; cursor: default; }
+.dsh-ntf-micro {
+  font-size: 11px; padding: 2px 7px; border-radius: 5px;
+  border: 1px solid var(--dsw-alias-border-l4);
+  background: var(--dsw-alias-bg-layer-2);
+  color: var(--dsw-alias-label-secondary); cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.dsh-ntf-micro:hover { background: var(--dsw-alias-interactive-bg-hover); color: var(--dsw-alias-label-primary); }
+.dsh-ntf-spinner {
+  width: 12px; height: 12px; border-radius: 999px;
+  border: 1.8px solid currentColor; border-top-color: transparent;
+  animation: dsh-ntf-spin 0.7s linear infinite; flex: none;
+}
+.dsh-ntf-list { margin: 4px 0 0; padding: 0; list-style: none; }
+.dsh-ntf-list-item {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 14px; flex-wrap: wrap;
+  font-size: 13px; padding: 7px 0;
+  border-top: 1px solid var(--dsw-alias-border-l1, var(--dsw-alias-border-l4));
+}
+.dsh-ntf-list-item:first-child { border-top: none; padding-top: 2px; }
+.dsh-ntf-list-value {
+  font-size: 12px; color: var(--dsw-alias-label-caption);
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere; text-align: right;
+}
+`
 
     /**
      * Call one Host action.
@@ -286,62 +363,142 @@ window.__ModuleLoader__.load({
       return `${at.getFullYear()}-${pad2(at.getMonth() + 1)}-${pad2(at.getDate())} ${pad2(at.getHours())}:${pad2(at.getMinutes())}`
     }
 
-    /** One button that disables itself while its action runs. */
+    /** Mask a stored token while preserving its tail for quick recognition. */
+    function maskToken(value) {
+      if (typeof value !== 'string' || value.length <= 6) return '••••••'
+      return `${'•'.repeat(Math.min(12, value.length - 4))}${value.slice(-4)}`
+    }
+
+    /** One button that disables itself and shows a spinner while its action runs. */
     function Action(props) {
-      const { label, onClick, busy, primary, disabled } = props
+      const { label, onClick, busy, primary, danger, size, disabled } = props
       const inactive = busy === true || disabled === true
       return h(
         'button',
         {
           type: 'button',
-          style: inactive
-            ? { ...(primary ? styles.primaryButton : styles.button), ...styles.disabled }
-            : primary
-              ? styles.primaryButton
-              : styles.button,
+          className: 'dsh-ntf-btn',
+          'data-variant': danger ? 'danger' : primary ? 'primary' : undefined,
+          'data-size': size,
           disabled: inactive,
           onClick,
         },
+        busy === true ? h('span', { className: 'dsh-ntf-spinner', 'aria-hidden': true }) : null,
         label,
       )
     }
 
-    /** One target, with its state, its last test result, and its two actions. */
+    /** One target, with its state, masked/copyable token, test result, and confirmed delete. */
     function TargetRow(props) {
       const { t, target, busy, result, onTest, onDelete } = props
+      const [revealed, setRevealed] = React.useState(false)
+      const [copied, setCopied] = React.useState(false)
+      const [confirming, setConfirming] = React.useState(false)
       const ready = target.status === 'ready'
       const state = ready ? t('addedAt', { when: when(target.addedAt) }) : t('unusable', { reason: reasonText(t, target.reason) })
+
+      const copy = async () => {
+        if (!target.token) return
+        try {
+          await navigator.clipboard.writeText(target.token)
+          setCopied(true)
+          setTimeout(() => setCopied(false), 1800)
+        } catch {
+          setCopied(false)
+        }
+      }
+
       return h(
         'li',
-        { style: styles.targetRow },
+        { className: 'dsh-ntf-target-item' },
         h(
           'div',
-          { style: styles.targetMain },
-          h('span', { style: styles.targetName }, target.name),
-          ready ? h('span', { style: styles.targetToken }, `${t('tokenLabel')}: ${target.token}`) : null,
-          h('span', { style: ready ? styles.caption : styles.warn }, state),
+          { className: 'dsh-ntf-target-main' },
+          h(
+            'div',
+            { className: 'dsh-ntf-target-head' },
+            h('span', { className: 'dsh-ntf-target-name' }, target.name),
+            h(
+              'span',
+              { className: 'dsh-ntf-badge', 'data-tone': ready ? 'ok' : 'warn' },
+              h('span', { className: 'dsh-ntf-dot', 'aria-hidden': true }),
+              ready ? t('statusReady') : t('statusUnusable'),
+            ),
+          ),
+          ready
+            ? h(
+                'div',
+                { className: 'dsh-ntf-token-row' },
+                h('span', { className: 'dsh-ntf-token' }, revealed ? target.token : maskToken(target.token)),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dsh-ntf-micro',
+                    onClick: () => setRevealed((prev) => !prev),
+                  },
+                  revealed ? t('hideToken') : t('showToken'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dsh-ntf-micro',
+                    onClick: () => void copy(),
+                  },
+                  copied ? t('copied') : t('copyToken'),
+                ),
+              )
+            : null,
+          h('span', { className: 'dsh-ntf-caption' }, state),
           result === undefined
             ? null
             : h(
-                'span',
-                { style: result.ok ? styles.ok : styles.warn },
-                result.ok ? t('testSent') : t('testFailed', { reason: errorText(t, result.error.code) }),
+                'div',
+                { className: 'dsh-ntf-alert', 'data-tone': result.ok ? 'ok' : 'warn', style: { marginBottom: 0 } },
+                h(
+                  'div',
+                  { className: 'dsh-ntf-alert-body' },
+                  h('div', null, result.ok ? t('testSent') : t('testFailed', { reason: errorText(t, result.error.code) })),
+                  result.ok ? null : h('div', { className: 'dsh-ntf-alert-detail' }, result.error.message),
+                ),
               ),
-          // The Host's own words for a refusal carry upstream detail the
-          // dictionaries cannot: a wrong token reads differently from a throttled
-          // account, and both are worth showing verbatim.
-          result === undefined || result.ok ? null : h('span', { style: styles.caption }, result.error.message),
         ),
         h(
           'div',
-          { style: styles.row },
+          { className: 'dsh-ntf-row' },
           h(Action, {
             label: t('test'),
+            size: 'sm',
             onClick: onTest,
             busy: busy === `test:${target.name}`,
             disabled: !ready,
           }),
-          h(Action, { label: t('remove'), onClick: onDelete, busy: busy === `delete:${target.name}` }),
+          confirming
+            ? h(
+                React.Fragment,
+                null,
+                h(Action, {
+                  label: t('confirmRemove'),
+                  size: 'sm',
+                  danger: true,
+                  busy: busy === `delete:${target.name}`,
+                  onClick: () => {
+                    setConfirming(false)
+                    onDelete()
+                  },
+                }),
+                h(Action, {
+                  label: t('cancel'),
+                  size: 'sm',
+                  onClick: () => setConfirming(false),
+                }),
+              )
+            : h(Action, {
+                label: t('remove'),
+                size: 'sm',
+                onClick: () => setConfirming(true),
+              }),
         ),
       )
     }
@@ -350,9 +507,9 @@ window.__ModuleLoader__.load({
     function ConfigRow(props) {
       return h(
         'li',
-        { style: styles.listItem },
+        { className: 'dsh-ntf-list-item' },
         h('span', null, props.label),
-        h('span', { style: styles.caption }, props.value),
+        h('span', { className: 'dsh-ntf-list-value' }, props.value),
       )
     }
 
@@ -368,6 +525,7 @@ window.__ModuleLoader__.load({
       const [busy, setBusy] = React.useState(null)
       const [name, setName] = React.useState('default')
       const [token, setToken] = React.useState('')
+      const [showTokenInput, setShowTokenInput] = React.useState(false)
       const [notice, setNotice] = React.useState(null)
       const [results, setResults] = React.useState({})
 
@@ -442,19 +600,28 @@ window.__ModuleLoader__.load({
       // the bundle's locale metadata, so this renders its cards only.
       return h(
         'div',
-        { style: styles.page },
-        error === null ? null : h('p', { style: styles.warn }, t('loadFailed', { code: error })),
+        { className: 'dsh-ntf-page' },
+        h('style', { 'data-plugin-css': 'dsh-notify' }, CSS),
+        error === null
+          ? null
+          : h('div', { className: 'dsh-ntf-alert', 'data-tone': 'warn', role: 'alert' },
+              h('div', { className: 'dsh-ntf-alert-body' }, t('loadFailed', { code: error }))),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('targetsHeading')),
+          { className: 'dsh-ntf-card' },
+          h(
+            'div',
+            { className: 'dsh-ntf-card-head' },
+            h('h2', { className: 'dsh-ntf-card-title' }, t('targetsHeading')),
+            status === null ? null : h('span', { className: 'dsh-ntf-badge' }, t('targetsCount', { count: targets.length })),
+          ),
           status === null
-            ? h('p', { style: styles.caption }, t('loading'))
+            ? h('p', { className: 'dsh-ntf-caption' }, t('loading'))
             : targets.length === 0
-              ? h('p', { style: styles.caption }, t('targetsEmpty'))
+              ? h('p', { className: 'dsh-ntf-caption' }, t('targetsEmpty'))
               : h(
                   'ul',
-                  { style: styles.list },
+                  { className: 'dsh-ntf-target-list' },
                   targets.map((target) =>
                     h(TargetRow, {
                       key: target.name,
@@ -470,38 +637,65 @@ window.__ModuleLoader__.load({
         ),
         h(
           'div',
-          { style: styles.card },
-          h('h2', { style: styles.cardTitle }, t('addHeading')),
+          { className: 'dsh-ntf-card' },
           h(
             'div',
-            { style: styles.field },
-            h('label', { style: styles.fieldLabel }, t('nameLabel')),
+            { className: 'dsh-ntf-card-head' },
+            h('h2', { className: 'dsh-ntf-card-title' }, t('addHeading')),
+          ),
+          h(
+            'div',
+            { className: 'dsh-ntf-field' },
+            h('label', { className: 'dsh-ntf-label' }, t('nameLabel')),
             h('input', {
-              style: styles.input,
+              className: 'dsh-ntf-input',
+              'data-mono': 'true',
               value: name,
               spellCheck: false,
               autoComplete: 'off',
               onChange: (event) => setName(event.target.value.toLowerCase()),
             }),
+            h('p', { className: 'dsh-ntf-caption' }, t('nameHint')),
           ),
-          h('p', { style: styles.caption }, t('nameHint')),
           h(
             'div',
-            { style: styles.field },
-            h('label', { style: styles.fieldLabel }, t('tokenLabel')),
-            h('input', {
-              style: styles.input,
-              type: 'text',
-              value: token,
-              spellCheck: false,
-              autoComplete: 'off',
-              onChange: (event) => setToken(event.target.value),
-            }),
+            { className: 'dsh-ntf-field' },
+            h('label', { className: 'dsh-ntf-label' }, t('tokenLabel')),
+            h(
+              'div',
+              { className: 'dsh-ntf-input-wrap' },
+              h('input', {
+                className: 'dsh-ntf-input',
+                'data-mono': 'true',
+                type: showTokenInput ? 'text' : 'password',
+                value: token,
+                placeholder: t('tokenPlaceholder'),
+                spellCheck: false,
+                autoComplete: 'off',
+                onChange: (event) => setToken(event.target.value),
+                onKeyDown: (event) => {
+                  if (event.key === 'Enter' && token.trim() !== '' && name.trim() !== '' && busy === null) {
+                    event.preventDefault()
+                    void save()
+                  }
+                },
+              }),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dsh-ntf-btn',
+                  'data-size': 'sm',
+                  onClick: () => setShowTokenInput((prev) => !prev),
+                },
+                showTokenInput ? t('hideToken') : t('showToken'),
+              ),
+            ),
+            h('p', { className: 'dsh-ntf-caption' }, t('tokenHint')),
           ),
-          h('p', { style: styles.caption }, t('tokenHint')),
           h(
             'div',
-            { style: styles.row },
+            { className: 'dsh-ntf-row', style: { marginTop: '14px' } },
             h(Action, {
               label: t('save'),
               onClick: save,
@@ -510,17 +704,24 @@ window.__ModuleLoader__.load({
               disabled: token.trim() === '' || name.trim() === '',
             }),
           ),
-          notice === null ? null : h('p', { style: styles.ok }, notice.text),
+          notice === null
+            ? null
+            : h('div', { className: 'dsh-ntf-alert', 'data-tone': notice.tone, style: { marginBottom: 0 } },
+                h('div', { className: 'dsh-ntf-alert-body' }, notice.text)),
         ),
         config === null
           ? null
           : h(
               'div',
-              { style: styles.card },
-              h('h2', { style: styles.cardTitle }, t('configHeading')),
+              { className: 'dsh-ntf-card' },
+              h(
+                'div',
+                { className: 'dsh-ntf-card-head' },
+                h('h2', { className: 'dsh-ntf-card-title' }, t('configHeading')),
+              ),
               h(
                 'ul',
-                { style: styles.list },
+                { className: 'dsh-ntf-list' },
                 h(ConfigRow, { label: t('configBaseUrl'), value: config.baseUrl }),
                 h(ConfigRow, { label: t('configTemplate'), value: config.template }),
                 h(ConfigRow, {
@@ -532,7 +733,7 @@ window.__ModuleLoader__.load({
                   value: t('configChars', { count: config.contentMaxChars }),
                 }),
               ),
-              h('p', { style: styles.caption }, t('configNote')),
+              h('p', { className: 'dsh-ntf-caption', style: { marginTop: '10px' } }, t('configNote')),
             ),
       )
     }
