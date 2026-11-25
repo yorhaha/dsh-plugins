@@ -1,6 +1,5 @@
 /**
- * The HTTP client core shared by the taobao, v2ex, zhihu, and xiaohongshu
- * bundles.
+ * The HTTP client core shared by the taobao, v2ex, and zhihu bundles.
  *
  * taobao and v2ex talk to one public upstream with one process-local client:
  * requests are serialized, paced by a minimum interval, retried once on a
@@ -9,9 +8,9 @@
  * for the service name, and the copies had already drifted on which clock they
  * measured the interval with.
  *
- * zhihu and xiaohongshu keep their own endpoints, signing, and budgets, but
- * both reuse the bounded response reader, retry timing, and failure-payload
- * helpers below; zhihu also uses the pacer and text helpers.
+ * zhihu keeps its own endpoint, signing, and budget, but reuses the bounded
+ * response reader, retry timing, and failure-payload helpers below; it also
+ * uses the pacer and text helpers.
  *
  * What stays in each bundle is what actually differs: the endpoint, the request
  * shape, the status ladder (which status means "not found" here), and how a

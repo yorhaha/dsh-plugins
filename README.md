@@ -1,6 +1,6 @@
 # dsh-plugins
 
-一组 DeepSeek Harness 本地插件，包含 13 个独立安装的 Cordis bundle，覆盖信息同步、内容检索、个人待办、通知推送与界面扩展。
+一组 DeepSeek Harness 本地插件，包含 12 个独立安装的 Cordis bundle，覆盖信息同步、内容检索、个人待办、通知推送与界面扩展。
 
 ## 插件一览
 
@@ -17,7 +17,6 @@
 | [`user-todo`](./user-todo/) | `dsh-user-todo` | 日历与待办 | 5 | 左侧栏 | 跨会话个人待办清单与月历，支持到期推送 |
 | [`v2ex`](./v2ex/) | `dsh-v2ex` | V2EX 查询 | 5 | — | 查询 V2EX 热门、最新、节点主题与回复 |
 | [`wechat`](./wechat/) | `dsh-wechat` | 微信 | 7 | 插件页 | 导入本机微信导出记录至 SQLite 以供检索 |
-| [`xiaohongshu`](./xiaohongshu/) | `dsh-xhs-reader` | 小红书 | 10 | 插件页 | 搜索和阅读小红书笔记、评论与用户主页 |
 | [`zhihu`](./zhihu/) | `dsh-zhihu` | 知乎 | 12 | 插件页 | 浏览知乎热榜、问题、回答、专栏文章与评论 |
 
 - **插件页**：左侧栏「插件」中选中对应插件后显示的详情与设置页。
@@ -30,7 +29,7 @@
 
 环境要求：
 - DeepSeek Harness `0.2.1-rc.3` 及以上版本（`0.2.2-alpha.2` 实测兼容）
-- Node.js 22.5+（`outlook`、`wechat`、`xiaohongshu` 使用内置 `node:sqlite`）
+- Node.js 22.5+（`outlook`、`wechat` 使用内置 `node:sqlite`）
 - pnpm 10+
 
 安装方式（二选一）：
@@ -43,7 +42,7 @@
 
 卸载请使用 `plugin_manager` 的 `remove_bundle`（`target` 传包名）或执行 `dsh plugin --profile <profile> remove <包名>`。
 
-`bilibili`、`deepxiv`、`notify`、`outlook`、`user-todo`、`wechat`、`xiaohongshu`、`zhihu` 包含运行时依赖，安装前需先进入各自目录运行一次 `pnpm install`；`stock`、`taobao`、`v2ex` 仅测试需要 `pnpm install`。
+`bilibili`、`deepxiv`、`notify`、`outlook`、`user-todo`、`wechat`、`zhihu` 包含运行时依赖，安装前需先进入各自目录运行一次 `pnpm install`；`stock`、`taobao`、`v2ex` 仅测试需要 `pnpm install`。
 
 ## 目录结构
 
@@ -81,7 +80,6 @@
 | `outlook` | `$DSH_HOME/storages/outlook/outlook.db` | SQLite + FTS5 |
 | `user-todo` | `$DSH_HOME/storages/user_todo.json` | JSON 文件 |
 | `wechat` | `$DSH_HOME/wechat/wechat.db`、`$DSH_HOME/wechat/batches/` | SQLite + 导出批次 |
-| `xiaohongshu` | `$DSH_HOME/storages/xiaohongshu/` | SQLite + 已下载图片 |
 | `file-memory` | `$DSH_HOME/memory/` | Markdown 文件 |
 | 登录态与 token | `$DSH_HOME/.credentials.yaml` | 明文 YAML（`0600`） |
 
